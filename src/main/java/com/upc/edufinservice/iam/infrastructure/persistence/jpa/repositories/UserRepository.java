@@ -1,4 +1,4 @@
-package com.upc.edufinservice.iam.domain.infrastructure.persistence.jpa.repositories;
+package com.upc.edufinservice.iam.infrastructure.persistence.jpa.repositories;
 
 import com.upc.edufinservice.iam.domain.model.aggregates.User;
 import org.springframework.data.jpa.repository.JpaRepository;
