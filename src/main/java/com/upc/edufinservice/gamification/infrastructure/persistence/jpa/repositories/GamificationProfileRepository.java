@@ -1,4 +1,4 @@
-﻿package com.upc.edufinservice.gamification.infrastructure.persistence.jpa.repositories;
+package com.upc.edufinservice.gamification.infrastructure.persistence.jpa.repositories;
 
 import com.upc.edufinservice.gamification.domain.model.aggregates.GamificationProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,5 +11,5 @@ import java.util.UUID;
 public interface GamificationProfileRepository extends JpaRepository<GamificationProfile, UUID> {
     Optional<GamificationProfile> findByUserId(UUID userid);
 
-    boolean existByUserId(UUID userId);
+    boolean existsByUserId(UUID userId);
 }

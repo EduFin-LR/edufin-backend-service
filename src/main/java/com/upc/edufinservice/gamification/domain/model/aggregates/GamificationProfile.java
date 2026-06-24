@@ -1,4 +1,4 @@
-﻿package com.upc.edufinservice.gamification.domain.model.aggregates;
+package com.upc.edufinservice.gamification.domain.model.aggregates;
 
 import jakarta.persistence.*;
 import lombok.Getter;
