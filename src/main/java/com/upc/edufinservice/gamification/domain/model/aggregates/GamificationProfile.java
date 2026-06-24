@@ -20,7 +20,7 @@ public class GamificationProfile {
     private UUID id;
 
     @Column(nullable = false, unique = true)
-    private Long userId;
+    private UUID userId;
 
     @Column(nullable = false)
     private Integer totalPoints;
@@ -33,6 +33,15 @@ public class GamificationProfile {
 
     @Column(nullable = false)
     private LocalDateTime lastActivityDate;
+
+    // Constructor para cuando se registra un usuario nuevo
+    public GamificationProfile(UUID userId) {
+        this.userId = userId;
+        this.totalPoints = 0;
+        this.currentLevel = 1;
+        this.streakDays = 0;
+        this.lastActivityDate = LocalDateTime.now();
+    }
 
     // --- LÓGICA DE NEGOCIO DEL DOMINIO ---
 
