@@ -6,7 +6,6 @@ public record SubmitQuestionAttemptCommand(
         UUID userId,
         UUID questionId,
         UUID selectedOptionId,
-        Boolean isCorrect,
         Float timeTakenSec
 ) {
     public SubmitQuestionAttemptCommand {

@@ -1,13 +1,20 @@
 package com.upc.edufinservice.dashboard.application.internal.queryservices;
 
+import com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositories.MlPredictionRepository;
 import com.upc.edufinservice.dashboard.interfaces.rest.resources.GamificationSummaryResource;
 import com.upc.edufinservice.dashboard.interfaces.rest.resources.HomeDashboardResource;
 import com.upc.edufinservice.dashboard.interfaces.rest.resources.TopicProgressResource;
 import com.upc.edufinservice.dashboard.interfaces.rest.resources.UserGreetingResource;
 import com.upc.edufinservice.gamification.domain.model.queries.GetGamificationProfileByUserIdQuery;
 import com.upc.edufinservice.gamification.domain.services.GamificationQueryService;
+import com.upc.edufinservice.iam.domain.model.queries.GetUserByIdQuery;
+import com.upc.edufinservice.iam.domain.services.UserQueryService;
+import com.upc.edufinservice.learning.domain.model.queries.GetAllTopicsQuery;
+import com.upc.edufinservice.learning.domain.model.queries.GetTopicProgressQuery;
+import com.upc.edufinservice.learning.domain.services.LearningQueryService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,10 +22,18 @@ import java.util.UUID;
 public class DashboardQueryServiceImpl {
 
     private final GamificationQueryService gamificationQueryService;
-    // TODO: Más adelante inyectaremos el LearningQueryService y el IAMQueryService
+    private final LearningQueryService learningQueryService;
+    private final MlPredictionRepository mlPredictionRepository;
+    private final UserQueryService userQueryService; // Usando tu interfaz exacta
 
-    public DashboardQueryServiceImpl(GamificationQueryService gamificationQueryService) {
+    public DashboardQueryServiceImpl(GamificationQueryService gamificationQueryService,
+                                     LearningQueryService learningQueryService,
+                                     MlPredictionRepository mlPredictionRepository,
+                                     UserQueryService userQueryService) {
         this.gamificationQueryService = gamificationQueryService;
+        this.learningQueryService = learningQueryService;
+        this.mlPredictionRepository = mlPredictionRepository;
+        this.userQueryService = userQueryService;
     }
 
     public HomeDashboardResource getHomeDashboard(UUID userId) {
@@ -30,7 +45,6 @@ public class DashboardQueryServiceImpl {
 
         if (gamificationProfile.isPresent()) {
             var profile = gamificationProfile.get();
-            // Lógica simple para calcular XP para el próximo nivel (Ej: Nivel * 400)
             int currentXp = profile.getTotalPoints();
             int currentLevel = profile.getCurrentLevel();
             int nextLevelXp = currentLevel * 400;
@@ -42,42 +56,93 @@ public class DashboardQueryServiceImpl {
                     nextLevelXp
             );
         } else {
-            // Valores por defecto si el usuario es nuevo
             gamificationSummary = new GamificationSummaryResource(0, 1, 0, 400);
         }
 
-        // 2. DATOS SIMULADOS DE USUARIO (IAM)
-        // TODO: Reemplazar con llamada real a IAM
-        var userGreeting = new UserGreetingResource(
-                "Jose Carlos",
-                "https://api.dicebear.com/7.x/avataaars/svg?seed=Jose" // Avatar dinámico temporal
-        );
+        // 2. DATOS REALES DE IDENTIDAD (IAM)
+        var userOpt = userQueryService.handle(new GetUserByIdQuery(userId));
 
-        // 3. DATOS SIMULADOS DE APRENDIZAJE E INTELIGENCIA ARTIFICIAL
-        // TODO: Reemplazar con llamada real a LearningQueryService y AnalyticsQueryService
-        var tema1 = new TopicProgressResource(
-                UUID.randomUUID(),
-                "Ahorro Básico",
-                10,
-                12,
-                83,
-                "IN_PROGRESS",
-                false
-        );
+        String nombreMostrar = "Estudiante EduFin";
+        String avatarUrl = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + userId;
 
-        var tema2 = new TopicProgressResource(
-                UUID.randomUUID(),
-                "Presupuesto Personal",
-                0,
-                15,
-                0,
-                "PENDING",
-                true // Simulando que la IA detectó que necesita este tema
-        );
+        if (userOpt.isPresent()) {
+            var user = userOpt.get();
+            // Asumiendo que tu entidad User tiene getFullName() y getUsername()
+            if (user.getFullName() != null && !user.getFullName().isBlank()) {
+                nombreMostrar = user.getFullName();
+            } else if (user.getUsername() != null && !user.getUsername().isBlank()) {
+                nombreMostrar = user.getUsername();
+            }
 
-        var learningPath = List.of(tema1, tema2);
+            if (user.getAvatarUrl() != null && !user.getAvatarUrl().isBlank()) {
+                avatarUrl = user.getAvatarUrl();
+            }
+        }
 
-        // 4. ENSAMBLAR Y RETORNAR EL JSON MAESTRO
+        var userGreeting = new UserGreetingResource(nombreMostrar, avatarUrl);
+
+        // 3. OBTENER TEMAS REALES Y APLICAR RECOMENDACIÓN DE LA IA (DKT)
+        var topics = learningQueryService.handle(new GetAllTopicsQuery());
+        List<TopicProgressResource> learningPath = new ArrayList<>();
+
+        UUID topicIdRecomendado = null;
+        float menorProbabilidad = 1.1f;
+
+        for (var topic : topics) {
+            var prediccionOpt = mlPredictionRepository.findByUserIdAndTopicId(userId, topic.getId());
+            if (prediccionOpt.isPresent()) {
+                float probabilidadExito = prediccionOpt.get().getPredictedSuccessProbability();
+                if (probabilidadExito < menorProbabilidad) {
+                    menorProbabilidad = probabilidadExito;
+                    topicIdRecomendado = topic.getId();
+                }
+            }
+        }
+
+        // 4. CONSTRUIR EL PROGRESO REAL DE CADA ALCANCÍA VISUAL
+        for (var topic : topics) {
+
+            var metrics = learningQueryService.handle(new GetTopicProgressQuery(userId, topic.getId()));
+
+            int totalLecciones = metrics.totalLessons();
+            int leccionesCompletadas = metrics.completedLessons();
+
+            int porcentaje = totalLecciones > 0 ? (leccionesCompletadas * 100) / totalLecciones : 0;
+
+            String status = "PENDING";
+            if (leccionesCompletadas > 0 && leccionesCompletadas < totalLecciones) {
+                status = "IN_PROGRESS";
+            } else if (totalLecciones > 0 && leccionesCompletadas == totalLecciones) {
+                status = "COMPLETED";
+            }
+
+            boolean isAiRecommended = topic.getId().equals(topicIdRecomendado);
+
+            learningPath.add(new TopicProgressResource(
+                    topic.getId(),
+                    topic.getName(),
+                    leccionesCompletadas,
+                    totalLecciones,
+                    porcentaje,
+                    status,
+                    isAiRecommended
+            ));
+        }
+
+        if (topicIdRecomendado == null && !learningPath.isEmpty()) {
+            var primerTema = learningPath.get(0);
+            learningPath.set(0, new TopicProgressResource(
+                    primerTema.topicId(),
+                    primerTema.topicName(),
+                    primerTema.completedLessons(),
+                    primerTema.totalLessons(),
+                    primerTema.progressPercentage(),
+                    primerTema.status(),
+                    true
+            ));
+        }
+
+        // 5. ENSAMBLAR Y RETORNAR EL JSON MAESTRO
         return new HomeDashboardResource(userGreeting, gamificationSummary, learningPath);
     }
 }
