@@ -1,4 +1,4 @@
-﻿package com.upc.edufinservice.assessment.domain.model.events;
+package com.upc.edufinservice.assessment.domain.model.events;
 
 import java.util.UUID;
 

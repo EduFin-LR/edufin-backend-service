@@ -1,4 +1,4 @@
-﻿package com.upc.edufinservice.analytics.application.internal.eventhandlers;
+package com.upc.edufinservice.analytics.application.internal.eventhandlers;
 
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredIncorrectlyEvent;
 import org.springframework.context.event.EventListener;

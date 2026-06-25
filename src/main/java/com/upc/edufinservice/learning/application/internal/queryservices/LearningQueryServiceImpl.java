@@ -45,4 +45,14 @@ public class LearningQueryServiceImpl implements LearningQueryService {
     public List<QuestionOption> handle(GetOptionsByQuestionIdQuery query) {
         return questionOptionRepository.findByQuestionId(query.questionId());
     }
+
+    // Agrega esta implementación al servicio existente:
+    @Override
+    public Topic handle(GetTopicByQuestionIdQuery query) {
+        var question = questionRepository.findById(query.questionId())
+                .orElseThrow(() -> new IllegalArgumentException("Pregunta no encontrada"));
+
+        // Gracias a la relación fuerte física, podemos navegar: Pregunta -> Lección -> Tema
+        return question.getLesson().getTopic();
+    }
 }

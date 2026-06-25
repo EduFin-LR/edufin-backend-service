@@ -13,4 +13,8 @@ public interface LearningQueryService {
     List<Lesson> handle(GetLessonsByTopicIdQuery query);
     List<Question> handle(GetQuestionsByLessonIdQuery query);
     List<QuestionOption> handle(GetOptionsByQuestionIdQuery query);
+
+    // Agrega este método a la interfaz existente:
+    Topic handle(GetTopicByQuestionIdQuery query);
+
 }
