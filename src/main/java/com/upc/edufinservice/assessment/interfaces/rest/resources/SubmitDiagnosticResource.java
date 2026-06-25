@@ -4,6 +4,5 @@ import java.util.List;
 import java.util.UUID;
 
 public record SubmitDiagnosticResource(
-        UUID userId,
         List<DiagnosticAnswerResource> answers
 ) {}

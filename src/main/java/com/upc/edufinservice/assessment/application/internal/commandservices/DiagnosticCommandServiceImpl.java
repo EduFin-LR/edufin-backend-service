@@ -2,6 +2,7 @@ package com.upc.edufinservice.assessment.application.internal.commandservices;
 
 import com.upc.edufinservice.assessment.domain.model.aggregates.DiagnosticResult;
 import com.upc.edufinservice.assessment.domain.model.aggregates.QuestionAttempt;
+import com.upc.edufinservice.assessment.domain.model.commands.EvaluateDiagnosticCommand;
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.DiagnosticResultRepository;
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.QuestionAttemptRepository;
 import com.upc.edufinservice.assessment.interfaces.rest.resources.SubmitDiagnosticResource;
@@ -26,14 +27,14 @@ public class DiagnosticCommandServiceImpl {
     }
 
     @Transactional
-    public Float evaluateDiagnostic(SubmitDiagnosticResource request) {
+    public Float evaluateDiagnostic(EvaluateDiagnosticCommand command) {
         int correctAnswers = 0;
-        int totalQuestions = request.answers().size();
+        int totalQuestions = command.answers().size();
 
         if (totalQuestions == 0) return 0.0f;
 
         // 1. Evaluar cada respuesta
-        for (var answer : request.answers()) {
+        for (var answer : command.answers()) {
             boolean isCorrect = false;
 
             // Le pedimos a Learning las opciones reales de esta pregunta para verificar
@@ -49,7 +50,7 @@ public class DiagnosticCommandServiceImpl {
 
             // 2. Guardar el intento para el modelo DKT (Analytics)
             var attempt = new QuestionAttempt(
-                    request.userId(),
+                    command.userId(),
                     answer.questionId(),
                     answer.selectedOptionId(),
                     isCorrect,
@@ -62,7 +63,7 @@ public class DiagnosticCommandServiceImpl {
         float score = ((float) correctAnswers / totalQuestions) * 100;
 
         // 4. Guardar el resultado final del diagnóstico
-        var result = new DiagnosticResult(request.userId(), score);
+        var result = new DiagnosticResult(command.userId(), score);
         diagnosticResultRepository.save(result);
 
         return score;
