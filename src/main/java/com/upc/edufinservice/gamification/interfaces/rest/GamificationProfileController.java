@@ -2,6 +2,7 @@ package com.upc.edufinservice.gamification.interfaces.rest;
 
 import com.upc.edufinservice.gamification.domain.model.commands.AddPointsCommand;
 import com.upc.edufinservice.gamification.domain.model.queries.GetGamificationProfileByUserIdQuery;
+import com.upc.edufinservice.gamification.domain.model.queries.GetLeaderboardQuery;
 import com.upc.edufinservice.gamification.domain.services.GamificationCommandService;
 import com.upc.edufinservice.gamification.domain.services.GamificationQueryService;
 import com.upc.edufinservice.gamification.interfaces.rest.resources.AddPointsResource;
@@ -11,7 +12,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/profiles") // Swagger lo verá en /api/v1/profiles
@@ -44,5 +47,17 @@ public class GamificationProfileController {
         if (profile.isEmpty()) return ResponseEntity.badRequest().build();
 
         return ResponseEntity.ok(ProfileResourceFromAggregateAssembler.toResourceFromAggregate(profile.get()));
+    }
+
+    @GetMapping("/leaderboard")
+    public ResponseEntity<List<GamificationProfileResource>> getLeaderboard() {
+        var topPlayers = queryService.handle(new GetLeaderboardQuery(10)); // Trae el Top 10
+
+        // Reutilizamos tu ensamblador estático para transformar toda la lista
+        var resources = topPlayers.stream()
+                .map(ProfileResourceFromAggregateAssembler::toResourceFromAggregate)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(resources);
     }
 }
