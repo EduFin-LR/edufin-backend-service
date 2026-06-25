@@ -1,7 +1,11 @@
 package com.upc.edufinservice.analytics.application.internal.eventhandlers;
 
 import com.upc.edufinservice.analytics.domain.model.aggregates.ErrorPattern;
+import com.upc.edufinservice.analytics.domain.model.aggregates.MlPrediction;
+import com.upc.edufinservice.analytics.domain.model.entities.StudentInteraction;
 import com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositories.ErrorPatternRepository;
+import com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositories.MlPredictionRepository;
+import com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositories.StudentInteractionRepository;
 import com.upc.edufinservice.analytics.infrastructure.external.fastapi.FastAPIClient;
 import com.upc.edufinservice.analytics.infrastructure.external.fastapi.dto.SolicitudPrediccionDto;
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredCorrectlyEvent;
@@ -11,31 +15,37 @@ import com.upc.edufinservice.learning.domain.services.LearningQueryService;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class AssessmentEventsHandler {
 
     private final LearningQueryService learningQueryService;
     private final ErrorPatternRepository errorPatternRepository;
+    private final MlPredictionRepository mlPredictionRepository;
+    private final StudentInteractionRepository interactionRepository; // Nueva bitácora
     private final FastAPIClient fastApiClient;
 
     public AssessmentEventsHandler(LearningQueryService learningQueryService,
                                    ErrorPatternRepository errorPatternRepository,
+                                   MlPredictionRepository mlPredictionRepository,
+                                   StudentInteractionRepository interactionRepository,
                                    FastAPIClient fastApiClient) {
         this.learningQueryService = learningQueryService;
         this.errorPatternRepository = errorPatternRepository;
+        this.mlPredictionRepository = mlPredictionRepository;
+        this.interactionRepository = interactionRepository;
         this.fastApiClient = fastApiClient;
     }
 
-    // 1. ESCUCHAR CUANDO RESPONDE CORRECTAMENTE
     @EventListener
     public void on(QuestionAnsweredCorrectlyEvent event) {
         processInteraction(event.userId(), event.questionId(), 1);
     }
 
-    // 2. ESCUCHAR CUANDO RESPONDE INCORRECTAMENTE
     @EventListener
     public void on(QuestionAnsweredIncorrectlyEvent event) {
         var topic = learningQueryService.handle(new GetTopicByQuestionIdQuery(event.questionId()));
@@ -49,37 +59,58 @@ public class AssessmentEventsHandler {
         processInteraction(event.userId(), event.questionId(), 0);
     }
 
-    // MÈTODO AUXILIAR ACTUALIZADO PARA FASTAPI
     private void processInteraction(UUID userId, UUID questionId, Integer isCorrect) {
         var topic = learningQueryService.handle(new GetTopicByQuestionIdQuery(questionId));
 
         if (topic.getDktSkillId() != null) {
 
-            // TODO: En el futuro consultaremos la base de datos para obtener el historial real del alumno.
-            // Por ahora, usamos datos simulados para que la IA de Python no falle al recibir el JSON.
-            List<Integer> historialSimulado = List.of(topic.getDktSkillId()); // Simulando que ya vio este tema antes
-            Double diasInactividadSimulados = 0.5; // Simula medio día de inactividad
+            // 1. Guardar la interacción actual en la bitácora
+            var currentInteraction = new StudentInteraction(userId, topic.getDktSkillId(), isCorrect);
+            interactionRepository.save(currentInteraction);
 
-            // Armamos el DTO exactamente como lo pide tu modelo Pydantic
+            // 2. Obtener todo el historial real cronológico del estudiante
+            var historial = interactionRepository.findByUserIdOrderByInteractedAtAsc(userId);
+
+            // 3. Calcular Días de Inactividad (DMMA)
+            double diasInactividad = 0.0;
+            if (historial.size() > 1) {
+                var interaccionAnterior = historial.get(historial.size() - 2).getInteractedAt();
+                var interaccionActual = currentInteraction.getInteractedAt();
+
+                // Calculamos la diferencia en segundos y la convertimos a días (1 día = 86400 segundos)
+                long segundos = Duration.between(interaccionAnterior, interaccionActual).getSeconds();
+                diasInactividad = segundos / 86400.0;
+            }
+
+            // 4. Codificar la secuencia para DKT
+            List<Integer> secuenciaReal = historial.stream()
+                    .map(h -> (h.getDktSkillId() * 2) + h.getIsCorrect())
+                    .collect(Collectors.toList());
+
+            // 5. Armar el paquete y enviarlo a FastAPI
             var payload = new SolicitudPrediccionDto(
-                    userId.toString(), // FastAPI espera un String, no un UUID
-                    historialSimulado,
+                    userId.toString(),
+                    secuenciaReal,
                     topic.getDktSkillId(),
-                    diasInactividadSimulados
+                    diasInactividad
             );
 
-            System.out.println("[ANALYTICS] Despachando evaluación a Python. Skill evaluado: " + topic.getName());
+            System.out.println("[ANALYTICS] Secuencia DKT armada: " + secuenciaReal + " | Días inactividad: " + diasInactividad);
 
-            // Enviamos la petición y capturamos la respuesta del modelo DKT
             var respuesta = fastApiClient.obtenerPrediccion(payload);
 
             if (respuesta != null) {
-                System.out.println("[ANALYTICS] ¡Predicción recibida exitosamente!");
-                System.out.println("-> Probabilidad DKT: " + respuesta.probabilidad_base_dkt());
-                System.out.println("-> Probabilidad Final (Olvido): " + respuesta.probabilidad_final_dmma());
-                System.out.println("-> Nivel Recomendado: " + respuesta.nivel_recommended());
+                Float nuevaProbabilidad = respuesta.probabilidad_final_dmma().floatValue();
+                var prediccionExistente = mlPredictionRepository.findByUserIdAndTopicId(userId, topic.getId());
 
-                // TODO: Aquí guardaremos la respuesta en la tabla `ml_predictions`
+                if (prediccionExistente.isPresent()) {
+                    var prediccion = prediccionExistente.get();
+                    prediccion.updatePrediction(nuevaProbabilidad, null);
+                    mlPredictionRepository.save(prediccion);
+                } else {
+                    var nuevaPrediccion = new MlPrediction(userId, topic.getId(), nuevaProbabilidad, null);
+                    mlPredictionRepository.save(nuevaPrediccion);
+                }
             }
         }
     }
