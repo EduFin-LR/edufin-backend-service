@@ -3,8 +3,10 @@ package com.upc.edufinservice.gamification.interfaces.rest;
 import com.upc.edufinservice.gamification.domain.model.commands.AddPointsCommand;
 import com.upc.edufinservice.gamification.domain.model.queries.GetGamificationProfileByUserIdQuery;
 import com.upc.edufinservice.gamification.domain.model.queries.GetLeaderboardQuery;
+import com.upc.edufinservice.gamification.domain.model.queries.GetUserAchievementsByUserIdQuery;
 import com.upc.edufinservice.gamification.domain.services.GamificationQueryService;
 import com.upc.edufinservice.gamification.interfaces.rest.resources.AddPointsResource;
+import com.upc.edufinservice.gamification.interfaces.rest.resources.BadgeResource;
 import com.upc.edufinservice.gamification.interfaces.rest.resources.GamificationProfileResource;
 import com.upc.edufinservice.gamification.interfaces.rest.transform.ProfileResourceFromAggregateAssembler;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -50,6 +52,29 @@ public class GamificationProfileController {
 
         var resources = topPlayers.stream()
                 .map(ProfileResourceFromAggregateAssembler::toResourceFromAggregate)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(resources);
+    }
+
+    @GetMapping("/me/achievements")
+    public ResponseEntity<List<BadgeResource>> getMyAchievements(){
+        //1. Extraemos el ID del estudiante de forma segura
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        UUID safeUserId = UUID.fromString(username);
+
+        // 2. Buscamos sus logros
+        var achievements = queryService.handle(new GetUserAchievementsByUserIdQuery(safeUserId));
+
+        // 3. Transformamos la entidad al DTO
+        var resources = achievements.stream()
+                .map(a -> new BadgeResource(
+                        a.getBadge().getId(),
+                        a.getBadge().getName(),
+                        a.getBadge().getDescription(),
+                        a.getBadge().getIconUrl(),
+                        a.getEarnedAt()
+                ))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(resources);
