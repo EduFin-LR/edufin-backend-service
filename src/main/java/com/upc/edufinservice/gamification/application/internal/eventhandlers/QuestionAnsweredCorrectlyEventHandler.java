@@ -1,4 +1,4 @@
-﻿package com.upc.edufinservice.gamification.application.internal.eventhandlers;
+package com.upc.edufinservice.gamification.application.internal.eventhandlers;
 
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredCorrectlyEvent;
 import com.upc.edufinservice.gamification.domain.model.commands.AddPointsCommand;
