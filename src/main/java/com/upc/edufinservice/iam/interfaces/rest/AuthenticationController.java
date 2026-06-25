@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/authentication")
+@RequestMapping("/iam/auth/sign-up")
 @Tag(name = "Authentication", description = "Endpoints para el registro y autenticación de usuarios")
 public class AuthenticationController {
 

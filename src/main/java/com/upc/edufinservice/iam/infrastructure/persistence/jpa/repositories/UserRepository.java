@@ -12,6 +12,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     // Spring Data JPA es tan inteligente que con solo nombrar el metodo asi,
     // el mismo crea la consulta SQL por detras (SELECT * FROM users WHERE username = ?)
     Optional<User> findByUsername(String username);
+    Optional<User> findByEmail(String email);
 
     boolean existsByUsername(String username);
 
