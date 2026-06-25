@@ -5,6 +5,7 @@ import com.upc.edufinservice.iam.infrastructure.persistence.jpa.repositories.Acc
 import com.upc.edufinservice.iam.infrastructure.persistence.jpa.repositories.UserRepository;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,15 +18,16 @@ public class PasswordRecoveryCommandServiceImpl {
     private final AccountRecoveryCodeRepository recoveryCodeRepository;
     private final JavaMailSender mailSender;
 
-    // NOTA: Si usas Spring Security, deberías inyectar tu PasswordEncoder aquí también
-    // private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     public PasswordRecoveryCommandServiceImpl(UserRepository userRepository,
                                               AccountRecoveryCodeRepository recoveryCodeRepository,
-                                              JavaMailSender mailSender) {
+                                              JavaMailSender mailSender,
+                                              PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.recoveryCodeRepository = recoveryCodeRepository;
         this.mailSender = mailSender;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -76,9 +78,9 @@ public class PasswordRecoveryCommandServiceImpl {
         }
 
         // 3. Actualizar la contraseña
-        // IMPORTANTE: Aquí debes hashear la contraseña antes de guardarla
-        // user.setPasswordHash(passwordEncoder.encode(newPassword));
-        user.setPasswordHash(newPassword); // <-- Cambiar por la versión hasheada
+
+        String hashedPassword = passwordEncoder.encode(newPassword);
+        user.setPasswordHash(hashedPassword);
         userRepository.save(user);
 
         // 4. Borrar el código para que no se vuelva a usar
