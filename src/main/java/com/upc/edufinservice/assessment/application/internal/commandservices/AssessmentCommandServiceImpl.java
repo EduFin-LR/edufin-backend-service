@@ -3,6 +3,7 @@ package com.upc.edufinservice.assessment.application.internal.commandservices;
 import com.upc.edufinservice.assessment.domain.model.aggregates.QuestionAttempt;
 import com.upc.edufinservice.assessment.domain.model.commands.SubmitQuestionAttemptCommand;
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredCorrectlyEvent;
+import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredIncorrectlyEvent;
 import com.upc.edufinservice.assessment.domain.services.AssessmentCommandService;
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.QuestionAttemptRepository;
 import org.springframework.context.ApplicationEventPublisher;
@@ -34,7 +35,9 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
 
         // 2. Si la respuesta fue correcta, disparamos el evento para que Gamificación lo escuche
         if (Boolean.TRUE.equals(attempt.getIsCorrect())) {
-            _eventPublisher.publishEvent(new QuestionAnsweredCorrectlyEvent(attempt.getUserId()));
+            _eventPublisher.publishEvent(new QuestionAnsweredCorrectlyEvent(attempt.getUserId(), attempt.getQuestionId()));
+        } else {
+            _eventPublisher.publishEvent(new QuestionAnsweredIncorrectlyEvent(attempt.getUserId(), attempt.getQuestionId()));
         }
 
         return Optional.of(attempt);
