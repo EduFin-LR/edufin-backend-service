@@ -18,12 +18,15 @@ public class LearningQueryServiceImpl implements LearningQueryService {
     private final LessonRepository lessonRepository;
     private final QuestionRepository questionRepository;
     private final QuestionOptionRepository questionOptionRepository;
+    private final UserLessonProgressRepository userLessonProgressRepository;
 
-    public LearningQueryServiceImpl(TopicRepository topicRepository, LessonRepository lessonRepository, QuestionRepository questionRepository, QuestionOptionRepository questionOptionRepository) {
+    public LearningQueryServiceImpl(TopicRepository topicRepository, LessonRepository lessonRepository, QuestionRepository questionRepository, QuestionOptionRepository questionOptionRepository
+    , UserLessonProgressRepository userLessonProgressRepository) {
         this.topicRepository = topicRepository;
         this.lessonRepository = lessonRepository;
         this.questionRepository = questionRepository;
         this.questionOptionRepository = questionOptionRepository;
+        this.userLessonProgressRepository = userLessonProgressRepository;
     }
 
     @Override
@@ -33,7 +36,7 @@ public class LearningQueryServiceImpl implements LearningQueryService {
 
     @Override
     public List<Lesson> handle(GetLessonsByTopicIdQuery query) {
-        return lessonRepository.findByTopicId(query.topicId());
+        return lessonRepository.findByTopic_Id(query.topicId());
     }
 
     @Override
@@ -54,5 +57,17 @@ public class LearningQueryServiceImpl implements LearningQueryService {
 
         // Gracias a la relación fuerte física, podemos navegar: Pregunta -> Lección -> Tema
         return question.getLesson().getTopic();
+    }
+
+    @Override
+    public TopicProgressMetrics handle(GetTopicProgressQuery query) {
+        Integer total = lessonRepository.countByTopicId(query.topicId());
+        Integer completed = userLessonProgressRepository.countCompletedLessons(query.userId(), query.topicId());
+
+        // Protegemos contra nulos por si las tablas están vacías
+        return new TopicProgressMetrics(
+                total != null ? total : 0,
+                completed != null ? completed : 0
+        );
     }
 }
