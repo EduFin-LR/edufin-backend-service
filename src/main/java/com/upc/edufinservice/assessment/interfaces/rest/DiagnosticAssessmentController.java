@@ -1,16 +1,17 @@
 package com.upc.edufinservice.assessment.interfaces.rest;
 
+import com.upc.edufinservice.assessment.application.internal.commandservices.DiagnosticCommandServiceImpl;
 import com.upc.edufinservice.assessment.interfaces.rest.resources.DiagnosticOptionResource;
 import com.upc.edufinservice.assessment.interfaces.rest.resources.DiagnosticQuestionResource;
+import com.upc.edufinservice.assessment.interfaces.rest.resources.DiagnosticResultResponseResource;
+import com.upc.edufinservice.assessment.interfaces.rest.resources.SubmitDiagnosticResource;
 import com.upc.edufinservice.learning.domain.model.queries.GetOptionsByQuestionIdQuery;
 import com.upc.edufinservice.learning.domain.model.queries.GetRandomQuestionsQuery;
 import com.upc.edufinservice.learning.domain.services.LearningQueryService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +23,11 @@ import java.util.UUID;
 public class DiagnosticAssessmentController {
 
     private final LearningQueryService learningQueryService;
-
-    public DiagnosticAssessmentController(LearningQueryService learningQueryService) {
+    private final DiagnosticCommandServiceImpl _diagnosticCommandService;
+    public DiagnosticAssessmentController(LearningQueryService learningQueryService,
+                                          DiagnosticCommandServiceImpl diagnosticCommandService) {
         this.learningQueryService = learningQueryService;
+        _diagnosticCommandService = diagnosticCommandService;
     }
 
     @GetMapping("/questions")
@@ -53,5 +56,16 @@ public class DiagnosticAssessmentController {
         }
 
         return ResponseEntity.ok(diagnosticTest);
+    }
+
+    @PostMapping("/submit")
+    public ResponseEntity<DiagnosticResultResponseResource> submitDiagnostic(
+            @RequestBody SubmitDiagnosticResource request
+            ){
+        float finalScore = _diagnosticCommandService.evaluateDiagnostic(request);
+        return ResponseEntity.ok(new DiagnosticResultResponseResource(
+                finalScore,
+                "Diagnostico completado. El modelo DKT ha sido calibrado."
+        ));
     }
 }
