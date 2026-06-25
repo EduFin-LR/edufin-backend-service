@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/users")
 @Tag(name = "Users", description = "Endpoints para la gestion de usuarios")
@@ -22,7 +24,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserResource> getUserById(@PathVariable Long userId){
+    public ResponseEntity<UserResource> getUserById(@PathVariable UUID userId){
         var getUserByIdQuery = new GetUserByIdQuery(userId);
         var user = _userQueryservice.handle(getUserByIdQuery);
 

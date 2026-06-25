@@ -1,6 +1,6 @@
 package com.upc.edufinservice.iam.application.internal.queryservices;
 
-import com.upc.edufinservice.iam.domain.infrastructure.persistence.jpa.repositories.UserRepository;
+import com.upc.edufinservice.iam.infrastructure.persistence.jpa.repositories.UserRepository;
 import com.upc.edufinservice.iam.domain.model.aggregates.User;
 import com.upc.edufinservice.iam.domain.model.queries.GetUserByIdQuery;
 import com.upc.edufinservice.iam.domain.services.UserQueryService;
