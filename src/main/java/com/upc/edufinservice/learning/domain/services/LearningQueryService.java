@@ -17,4 +17,6 @@ public interface LearningQueryService {
     // Agrega este método a la interfaz existente:
     Topic handle(GetTopicByQuestionIdQuery query);
     TopicProgressMetrics handle(GetTopicProgressQuery query);
+
+    List<Question> handle(GetRandomQuestionsQuery query);
 }

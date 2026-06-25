@@ -2,6 +2,8 @@ package com.upc.edufinservice.learning.infrastructure.persistence.jpa.repositori
 
 import com.upc.edufinservice.learning.domain.model.aggregates.Question;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -12,4 +14,8 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
 
     // Para buscar todas las preguntas de una lección
     List<Question> findByLessonId(UUID lessonId);
+
+    // Consulta nativa en PostgreSQL para traer N preguntas al azar
+    @Query(value = "SELECT * FROM questions ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+    List<Question> findRandomQuestions(@Param("limit") int limit);
 }

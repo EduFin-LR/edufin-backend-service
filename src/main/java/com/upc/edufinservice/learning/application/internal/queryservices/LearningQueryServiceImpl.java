@@ -70,4 +70,9 @@ public class LearningQueryServiceImpl implements LearningQueryService {
                 completed != null ? completed : 0
         );
     }
+
+    @Override
+    public List<Question> handle(GetRandomQuestionsQuery query) {
+        return questionRepository.findRandomQuestions(query.limit());
+    }
 }
