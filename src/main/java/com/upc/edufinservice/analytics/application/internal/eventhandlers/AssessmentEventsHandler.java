@@ -71,18 +71,23 @@ public class AssessmentEventsHandler {
             // 2. Obtener todo el historial real cronológico del estudiante
             var historial = interactionRepository.findByUserIdOrderByInteractedAtAsc(userId);
 
-            // 3. Calcular Días de Inactividad (DMMA)
+            // 2.1 Filtrar solo el historial de ESTE tema específico para calcular el olvido real
+            var historialDelTema = historial.stream()
+                    .filter(h -> h.getDktSkillId().equals(topic.getDktSkillId()))
+                    .collect(Collectors.toList());
+
+            // 3. Calcular Días de Inactividad ESPECÍFICOS (DMMA)
             double diasInactividad = 0.0;
-            if (historial.size() > 1) {
-                var interaccionAnterior = historial.get(historial.size() - 2).getInteractedAt();
+            if (historialDelTema.size() > 1) {
+                // Tomamos la penúltima interacción de ESTE tema (porque la última es la actual)
+                var interaccionAnterior = historialDelTema.get(historialDelTema.size() - 2).getInteractedAt();
                 var interaccionActual = currentInteraction.getInteractedAt();
 
-                // Calculamos la diferencia en segundos y la convertimos a días (1 día = 86400 segundos)
                 long segundos = Duration.between(interaccionAnterior, interaccionActual).getSeconds();
                 diasInactividad = segundos / 86400.0;
             }
 
-            // 4. Codificar la secuencia para DKT
+            // 4. Codificar la secuencia (Se usa el 'historial' completo, no el filtrado)
             List<Integer> secuenciaReal = historial.stream()
                     .map(h -> (h.getDktSkillId() * 2) + h.getIsCorrect())
                     .collect(Collectors.toList());
