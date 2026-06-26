@@ -29,7 +29,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         String hashedPassword = _passwordEncoder.encode(command.password());
         //Mapeo del comando al agregado de dominio.
-        User user = new User(command.username(), command.email(), hashedPassword);
+        User user = new User(command.username(), command.email(), hashedPassword, command.gender());
 
         return Optional.of(_userRepository.save(user));
     }

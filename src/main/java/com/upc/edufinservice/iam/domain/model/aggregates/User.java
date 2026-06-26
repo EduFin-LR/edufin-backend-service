@@ -23,6 +23,9 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
+    @Column(name = "gender", length = 30)
+    private String gender;
+
     // Tu script lo llama password_hash
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
@@ -37,9 +40,10 @@ public class User {
     private String fullName;
 
     //constructor personalizado para cuando se registre
-    public User(String username, String email, String passwordHash){
+    public User(String username, String email, String passwordHash, String gender){
         this.username = username;
         this.email = email;
         this.passwordHash = passwordHash;
+        this.gender = gender;
     }
 }

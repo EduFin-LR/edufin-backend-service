@@ -5,6 +5,6 @@ import com.upc.edufinservice.iam.interfaces.rest.resources.SignUpResource;
 
 public class SignUpCommandFromResourceAssembler {
     public static SignUpCommand toCommandFromResource(SignUpResource resource){
-        return new SignUpCommand(resource.username(), resource.email(), resource.password());
+        return new SignUpCommand(resource.username(), resource.email(), resource.password(), resource.gender());
     }
 }
