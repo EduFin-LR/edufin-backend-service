@@ -2,6 +2,7 @@ package com.upc.edufinservice.analytics.infrastructure.external.fastapi;
 
 import com.upc.edufinservice.analytics.infrastructure.external.fastapi.dto.SolicitudPrediccionDto;
 import com.upc.edufinservice.analytics.infrastructure.external.fastapi.dto.RespuestaPrediccionDto;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -10,7 +11,9 @@ public class FastAPIClient {
 
     private final RestTemplate restTemplate;
     // Ajustado a la ruta exacta de tu archivo de Python
-    private final String fastapiUrl = "http://localhost:8000/predecir-nivel";
+
+    @Value("${ml.engine.url}")
+    private String fastapiUrl;
 
     public FastAPIClient() {
         this.restTemplate = new RestTemplate();
