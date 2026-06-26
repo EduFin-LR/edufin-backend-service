@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface BadgeRepository extends JpaRepository<Badge, UUID> {}
+public interface BadgeRepository extends JpaRepository<Badge, UUID> {
+
+
+}

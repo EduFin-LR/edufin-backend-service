@@ -1,9 +1,12 @@
 package com.upc.edufinservice.gamification.interfaces.rest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.upc.edufinservice.gamification.domain.model.queries.GetAllBadgesQuery;
+import com.upc.edufinservice.gamification.interfaces.rest.resources.BadgeProgressResource;
 import com.upc.edufinservice.gamification.interfaces.rest.resources.LeaderboardProfileResource;
 import com.upc.edufinservice.iam.domain.model.queries.GetUserByIdQuery;
 import com.upc.edufinservice.iam.domain.model.queries.GetUserByUsernameQuery;
@@ -108,36 +111,48 @@ public class GamificationProfileController {
     }
 
     @GetMapping("/me/achievements")
-    public ResponseEntity<List<BadgeResource>> getMyAchievements(){
-        // 1. Extraemos la autenticación del token
+    public ResponseEntity<List<BadgeProgressResource>> getMyAchievements(){
+        // 1. Extraemos y validamos la identidad de forma segura (Como ya configuramos antes)
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
             throw new MissingJwtException();
         }
 
-        // 🚀 2. Traducimos el Username del token al UUID real usando tu IAM
         String currentUsername = authentication.getName();
         var userOpt = _userQueryService.handle(new GetUserByUsernameQuery(currentUsername));
 
         if (userOpt.isEmpty()) {
-            throw new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuario no existe en la BD.");
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuario no existe.");
         }
-
         UUID safeUserId = userOpt.get().getId();
 
-        // 3. Buscamos sus logros usando el UUID seguro
-        var achievements = queryService.handle(new GetUserAchievementsByUserIdQuery(safeUserId));
+        // 2. Traemos TODAS las medallas que existen en el juego
+        var allBadges = queryService.handle(new GetAllBadgesQuery()); // Asegúrate de tener este Query creado
 
-        // 4. Transformamos la entidad al DTO
-        var resources = achievements.stream()
-                .map(a -> new BadgeResource(
-                        a.getBadge().getId(),
-                        a.getBadge().getName(),
-                        a.getBadge().getDescription(),
-                        a.getBadge().getIconUrl(),
-                        a.getEarnedAt()
-                ))
-                .collect(Collectors.toList());
+        // 3. Traemos solo los logros que ESTE usuario ha ganado
+        var earnedAchievements = queryService.handle(new GetUserAchievementsByUserIdQuery(safeUserId));
+
+        // 4. Cruzamos los datos: Creamos el progreso final
+        var resources = allBadges.stream().map(badge -> {
+
+            // Buscamos si el usuario tiene esta medalla específica
+            var earnedOpt = earnedAchievements.stream()
+                    .filter(earned -> earned.getBadge().getId().equals(badge.getId()))
+                    .findFirst();
+
+            boolean isUnlocked = earnedOpt.isPresent();
+            LocalDateTime dateEarned = isUnlocked ? earnedOpt.get().getEarnedAt() : null;
+
+            return new BadgeProgressResource(
+                    badge.getId(),
+                    badge.getName(),
+                    badge.getDescription(),
+                    badge.getIconUrl(),
+                    isUnlocked,
+                    dateEarned
+            );
+
+        }).collect(Collectors.toList());
 
         return ResponseEntity.ok(resources);
     }

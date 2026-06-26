@@ -1,11 +1,14 @@
 package com.upc.edufinservice.gamification.application.internal.queryservices;
 
+import com.upc.edufinservice.gamification.domain.model.aggregates.Badge;
 import com.upc.edufinservice.gamification.domain.model.aggregates.GamificationProfile;
 import com.upc.edufinservice.gamification.domain.model.aggregates.UserAchievement;
+import com.upc.edufinservice.gamification.domain.model.queries.GetAllBadgesQuery;
 import com.upc.edufinservice.gamification.domain.model.queries.GetGamificationProfileByUserIdQuery;
 import com.upc.edufinservice.gamification.domain.model.queries.GetLeaderboardQuery;
 import com.upc.edufinservice.gamification.domain.model.queries.GetUserAchievementsByUserIdQuery;
 import com.upc.edufinservice.gamification.domain.services.GamificationQueryService;
+import com.upc.edufinservice.gamification.infrastructure.persistence.jpa.repositories.BadgeRepository;
 import com.upc.edufinservice.gamification.infrastructure.persistence.jpa.repositories.GamificationProfileRepository;
 import com.upc.edufinservice.gamification.infrastructure.persistence.jpa.repositories.UserAchievementRepository;
 import org.springframework.data.domain.PageRequest;
@@ -18,11 +21,14 @@ import java.util.Optional;
 public class GamificationQueryServiceImpl implements GamificationQueryService {
     private final GamificationProfileRepository _repository;
     private final UserAchievementRepository _userAchievementRepository;
+    private final BadgeRepository _badgeRepository;
 
     public GamificationQueryServiceImpl(GamificationProfileRepository repository,
-                                        UserAchievementRepository userAchievementRepository){
+                                        UserAchievementRepository userAchievementRepository,
+                                        BadgeRepository badgerepository){
         _repository = repository;
         _userAchievementRepository = userAchievementRepository;
+        _badgeRepository=badgerepository;
     }
 
     @Override
@@ -39,5 +45,11 @@ public class GamificationQueryServiceImpl implements GamificationQueryService {
     @Override
     public List<UserAchievement> handle(GetUserAchievementsByUserIdQuery query){
         return _userAchievementRepository.findByUserId(query.userId());
+    }
+
+    @Override
+    public List<Badge> handle(GetAllBadgesQuery query) {
+        // 🚀 Usamos el método findAll() que JPA nos regala
+        return _badgeRepository.findAll();
     }
 }
