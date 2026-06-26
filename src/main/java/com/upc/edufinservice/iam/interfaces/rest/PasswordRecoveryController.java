@@ -1,13 +1,19 @@
 package com.upc.edufinservice.iam.interfaces.rest;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.upc.edufinservice.iam.application.internal.commandservices.PasswordRecoveryCommandServiceImpl;
 import com.upc.edufinservice.iam.interfaces.rest.resources.ForgotPasswordResource;
 import com.upc.edufinservice.iam.interfaces.rest.resources.MessageResource;
 import com.upc.edufinservice.iam.interfaces.rest.resources.ResetPasswordResource;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/iam/auth")
@@ -39,9 +45,8 @@ public class PasswordRecoveryController {
 
         if (success) {
             return ResponseEntity.ok(new MessageResource("Contraseña actualizada correctamente."));
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new MessageResource("El código es incorrecto o ha expirado."));
         }
+
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El código es incorrecto o ha expirado.");
     }
 }

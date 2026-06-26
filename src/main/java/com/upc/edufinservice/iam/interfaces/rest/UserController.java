@@ -1,17 +1,20 @@
 package com.upc.edufinservice.iam.interfaces.rest;
 
-import com.upc.edufinservice.iam.domain.model.queries.GetUserByIdQuery;
-import com.upc.edufinservice.iam.domain.services.UserQueryService;
-import com.upc.edufinservice.iam.interfaces.rest.resources.UserResource;
-import com.upc.edufinservice.iam.interfaces.rest.transform.UserResourceFromAggregateAssembler;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.UUID;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.UUID;
+import com.upc.edufinservice.iam.domain.model.queries.GetUserByIdQuery;
+import com.upc.edufinservice.iam.domain.services.UserQueryService;
+import com.upc.edufinservice.iam.interfaces.rest.resources.UserResource;
+import com.upc.edufinservice.iam.interfaces.rest.transform.UserResourceFromAggregateAssembler;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/users")
@@ -28,7 +31,9 @@ public class UserController {
         var getUserByIdQuery = new GetUserByIdQuery(userId);
         var user = _userQueryservice.handle(getUserByIdQuery);
 
-        if (user.isEmpty()) return ResponseEntity.notFound().build();
+        if (user.isEmpty()) {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Usuario no encontrado.");
+        }
 
         var userResource = UserResourceFromAggregateAssembler.toResourceFromAggregate(user.get());
         return ResponseEntity.ok(userResource);
