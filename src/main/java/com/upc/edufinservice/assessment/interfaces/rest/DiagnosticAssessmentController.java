@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.upc.edufinservice.iam.domain.model.queries.GetUserByUsernameQuery;
+import com.upc.edufinservice.iam.domain.services.UserQueryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,10 +39,14 @@ public class DiagnosticAssessmentController {
 
     private final LearningQueryService learningQueryService;
     private final DiagnosticCommandServiceImpl _diagnosticCommandService;
+    private final UserQueryService userQueryService;
+
     public DiagnosticAssessmentController(LearningQueryService learningQueryService,
-                                          DiagnosticCommandServiceImpl diagnosticCommandService) {
+                                          DiagnosticCommandServiceImpl diagnosticCommandService,
+                                          UserQueryService userQueryService) {
         this.learningQueryService = learningQueryService;
         _diagnosticCommandService = diagnosticCommandService;
+        this.userQueryService = userQueryService;
     }
 
     @GetMapping("/questions")
@@ -87,19 +93,23 @@ public class DiagnosticAssessmentController {
     public ResponseEntity<DiagnosticResultResponseResource> submitDiagnostic(
             @RequestBody SubmitDiagnosticResource request
     ) {
-        // 1. EL BLINDAJE JWT: Extraemos el ID del usuario del token
-                var authentication = SecurityContextHolder.getContext().getAuthentication();
-                if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-                        throw new MissingJwtException();
-                }
+        // 1. EL BLINDAJE JWT: Extraemos el username (email) del token
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new MissingJwtException();
+        }
 
-                UUID safeUserId;
-                try {
-                        safeUserId = UUID.fromString(authentication.getName());
-                } catch (IllegalArgumentException ex) {
-                        throw new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Token inválido o usuario no autenticado.");
-                }
+        String currentUsername = authentication.getName();
 
+        // 🚀 CAMBIO 2: Buscamos al usuario en la BD para sacar su UUID real
+        var userOpt = userQueryService.handle(new GetUserByUsernameQuery(currentUsername));
+
+        if (userOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "El usuario asociado a este token no existe.");
+        }
+
+        // Ahora sí tenemos el UUID seguro
+        UUID safeUserId = userOpt.get().getId();
         // 2. Mapeamos el JSON (Resource) al Comando (Capa de Dominio)
         var answerCommands = request.answers().stream()
                 .map(a -> new DiagnosticAnswerCommand(a.questionId(), a.selectedOptionId(), a.timeTakenSec()))
