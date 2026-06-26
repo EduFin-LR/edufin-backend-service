@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.upc.edufinservice.iam.infrastructure.tokens.jwt.JwtAuthenticationFilter;
 import com.upc.edufinservice.iam.infrastructure.tokens.jwt.JwtTokenProvider;
 import com.upc.edufinservice.shared.infrastructure.exceptions.ErrorResponse;
+import com.upc.edufinservice.shared.infrastructure.exceptions.InvalidJwtException;
+import com.upc.edufinservice.shared.infrastructure.exceptions.MissingJwtException;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -49,12 +51,17 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception
                         // Maneja el 401 (No hay token o es inválido)
                         .authenticationEntryPoint((request, response, authException) -> {
+                        Object invalidJwt = request.getAttribute(JwtAuthenticationFilter.INVALID_JWT_ATTRIBUTE);
+                        String message = invalidJwt instanceof InvalidJwtException
+                            ? ((InvalidJwtException) invalidJwt).getMessage()
+                            : new MissingJwtException().getMessage();
+
                             response.setContentType("application/json;charset=UTF-8");
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             ErrorResponse errorResponse = new ErrorResponse(
                                     401,
                                     "Unauthorized",
-                                    "Debes iniciar sesión proporcionando un Token válido."
+                            message
                             );
                             response.getWriter().write(new ObjectMapper().writeValueAsString(errorResponse));
                             response.getWriter().flush();

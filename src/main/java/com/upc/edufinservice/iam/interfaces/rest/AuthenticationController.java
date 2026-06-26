@@ -1,5 +1,15 @@
 package com.upc.edufinservice.iam.interfaces.rest;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.upc.edufinservice.iam.domain.model.queries.GetUserByUsernameQuery;
 import com.upc.edufinservice.iam.domain.services.UserCommandService;
 import com.upc.edufinservice.iam.domain.services.UserQueryService;
@@ -10,15 +20,8 @@ import com.upc.edufinservice.iam.interfaces.rest.resources.SignUpResource;
 import com.upc.edufinservice.iam.interfaces.rest.resources.UserResource;
 import com.upc.edufinservice.iam.interfaces.rest.transform.SignUpCommandFromResourceAssembler;
 import com.upc.edufinservice.iam.interfaces.rest.transform.UserResourceFromAggregateAssembler;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/iam/auth")
@@ -45,7 +48,9 @@ public class AuthenticationController {
         var signUpCommand = SignUpCommandFromResourceAssembler.toCommandFromResource(resource);
         var user = _userCommandService.handle(signUpCommand);
 
-        if (user.isEmpty()) return ResponseEntity.badRequest().build();
+        if (user.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se pudo crear el usuario.");
+        }
 
         var userResource = UserResourceFromAggregateAssembler.toResourceFromAggregate(user.get());
         return new ResponseEntity<>(userResource, HttpStatus.CREATED);

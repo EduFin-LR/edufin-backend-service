@@ -13,7 +13,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import com.upc.edufinservice.shared.infrastructure.exceptions.InvalidJwtException;
+import io.jsonwebtoken.JwtException;
+
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    public static final String INVALID_JWT_ATTRIBUTE = "edufin.invalid-jwt";
 
     private final JwtTokenProvider _tokenProvider;
 
@@ -24,12 +29,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        try {
-            // 1. Extraemos el token del request usando nuestro método helper
-            String token = getJwtFromRequest(request);
+        // 1. Extraemos el token del request usando nuestro método helper
+        String token = getJwtFromRequest(request);
 
-            // 2. Si hay token y es válido, autenticamos al usuario
-            if (StringUtils.hasText(token) && _tokenProvider.validateToken(token)) {
+        // 2. Si no hay token, seguimos como anónimo y el entrypoint resolverá el 401 si la ruta lo exige.
+        if (!StringUtils.hasText(token)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        try {
+            // 3. Si hay token y es válido, autenticamos al usuario
+            if (_tokenProvider.validateToken(token)) {
                 String username = _tokenProvider.getUsernameFromToken(token);
 
                 // Creamos la autenticación (Aquí podrías cargar roles si los tuvieras en el token)
@@ -41,12 +52,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // Guardamos la autenticación en el contexto de seguridad (El usuario ya tiene pase libre)
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                filterChain.doFilter(request, response);
+                return;
             }
 
-        } catch (Exception e) {
-            // Ignoramos errores de token (como expiración o firmas inválidas)
-            // Esto permite que el request fluya como "Anónimo" y el SecurityConfig devuelva el JSON 401.
-            System.err.println("No se pudo establecer la autenticación en el contexto de seguridad: " + e.getMessage());
+            request.setAttribute(INVALID_JWT_ATTRIBUTE, new InvalidJwtException());
+            SecurityContextHolder.clearContext();
+
+        } catch (JwtException | IllegalArgumentException e) {
+            request.setAttribute(INVALID_JWT_ATTRIBUTE, new InvalidJwtException());
+            SecurityContextHolder.clearContext();
         }
 
         // 3. Continuamos con la cadena de filtros

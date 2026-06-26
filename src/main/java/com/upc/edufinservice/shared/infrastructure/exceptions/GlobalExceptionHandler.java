@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -48,6 +50,37 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
+
+        @ExceptionHandler(MissingJwtException.class)
+        public ResponseEntity<ErrorResponse> handleMissingJwt(MissingJwtException ex) {
+                ErrorResponse error = new ErrorResponse(
+                                HttpStatus.UNAUTHORIZED.value(),
+                                "Unauthorized",
+                                ex.getMessage()
+                );
+                return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+        }
+
+        @ExceptionHandler(InvalidJwtException.class)
+        public ResponseEntity<ErrorResponse> handleInvalidJwt(InvalidJwtException ex) {
+                ErrorResponse error = new ErrorResponse(
+                                HttpStatus.UNAUTHORIZED.value(),
+                                "Unauthorized",
+                                ex.getMessage()
+                );
+                return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+        }
+
+        @ExceptionHandler(ResponseStatusException.class)
+        public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex) {
+                HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+                ErrorResponse error = new ErrorResponse(
+                                status.value(),
+                                status.getReasonPhrase(),
+                                ex.getReason() != null ? ex.getReason() : "Ocurrió un error inesperado en el servidor."
+                );
+                return new ResponseEntity<>(error, status);
+        }
 
     // 3. Comodín: Atrapa CUALQUIER otro error que no hayamos previsto (Error 500)
     @ExceptionHandler(Exception.class)
@@ -141,5 +174,15 @@ public class GlobalExceptionHandler {
                     "Uno o más parámetros de la solicitud son inválidos."
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        }
+
+        @ExceptionHandler(HttpMessageNotReadableException.class)
+        public ResponseEntity<ErrorResponse> handleUnreadableMessage(HttpMessageNotReadableException ex) {
+                ErrorResponse error = new ErrorResponse(
+                                HttpStatus.BAD_REQUEST.value(),
+                                "Bad Request",
+                                "El JSON enviado no es válido o no tiene el formato esperado."
+                );
+                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
 }
