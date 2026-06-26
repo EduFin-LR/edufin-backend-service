@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Entity
@@ -39,7 +40,7 @@ public class GamificationProfile {
         this.userId = userId;
         this.totalPoints = 0;
         this.currentLevel = 1;
-        this.streakDays = 0;
+        this.streakDays = 1; // 🚀 FIX 1: El primer día de actividad cuenta como racha 1.
         this.lastActivityDate = LocalDateTime.now();
     }
 
@@ -53,20 +54,26 @@ public class GamificationProfile {
     }
 
     private Integer calculateLevel() {
-        // Fórmula básica: 1 nivel cada 100 puntos.
-        return (this.totalPoints / 100) + 1;
+        // 🚀 FIX 2: Fórmula ajustada a 400 puntos por nivel para sincronizar con el frontend.
+        // Matemáticamente:
+        // $$ Nivel = \left\lfloor \frac{PuntosTotales}{400} \right\rfloor + 1 $$
+        return (this.totalPoints / 400) + 1;
     }
 
     private void updateActivityAndStreak() {
         LocalDateTime now = LocalDateTime.now();
-        // Si la última actividad fue ayer, la racha aumenta.
-        if (this.lastActivityDate.toLocalDate().plusDays(1).equals(now.toLocalDate())) {
+        long daysBetween = ChronoUnit.DAYS.between(this.lastActivityDate.toLocalDate(), now.toLocalDate());
+
+        // 🚀 FIX 3: Cálculo preciso de días transcurridos
+        if (daysBetween == 1) {
+            // Volvió exactamente al día siguiente: la racha crece
             this.streakDays += 1;
-        }
-        // Si pasaron más de 2 días, la racha se rompe y vuelve a 1.
-        else if (this.lastActivityDate.toLocalDate().plusDays(1).isBefore(now.toLocalDate())) {
+        } else if (daysBetween > 1) {
+            // Pasaron 2 o más días: la racha se rompe y vuelve a 1 (hoy)
             this.streakDays = 1;
         }
+        // Si daysBetween == 0, es el mismo día y la racha se mantiene intacta.
+
         this.lastActivityDate = now;
     }
 }

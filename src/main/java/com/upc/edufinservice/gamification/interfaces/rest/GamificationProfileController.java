@@ -4,6 +4,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.upc.edufinservice.gamification.interfaces.rest.resources.LeaderboardProfileResource;
+import com.upc.edufinservice.iam.domain.model.queries.GetUserByIdQuery;
+import com.upc.edufinservice.iam.domain.model.queries.GetUserByUsernameQuery;
+import com.upc.edufinservice.iam.domain.services.UserQueryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,69 +32,103 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class GamificationProfileController {
 
     private final GamificationQueryService queryService;
+    private final UserQueryService _userQueryService;
 
-    public GamificationProfileController(GamificationQueryService queryService) {
+    public GamificationProfileController(GamificationQueryService queryService,
+                                         UserQueryService userQueryService) {
         this.queryService = queryService;
+        _userQueryService = userQueryService;
     }
 
     //contextual al usuario logueado
     @GetMapping("/me")
     public ResponseEntity<GamificationProfileResource> getMyProfile() {
-        // 1. Obtenemos el ID del usuario directamente del token
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
             throw new MissingJwtException();
         }
 
-        UUID safeUserId;
-        try {
-            safeUserId = UUID.fromString(authentication.getName());
-        } catch (IllegalArgumentException ex) {
-            throw new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Token inválido o usuario no autenticado.");
+        // 🚀 2. Traducimos el Username del token al UUID real
+        String currentUsername = authentication.getName();
+        var userOpt = _userQueryService.handle(new GetUserByUsernameQuery(currentUsername));
+
+        if (userOpt.isEmpty()) {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuario no existe en la BD.");
         }
 
-        // 2. Ejecutamos la consulta con el ID seguro
+        UUID safeUserId = userOpt.get().getId();
+
+        // 3. Ejecutamos la consulta de gamificación con el ID seguro
         var query = new GetGamificationProfileByUserIdQuery(safeUserId);
         var profile = queryService.handle(query);
 
-        // 3. Si el perfil aún no existe (es su primer día), devolvemos un 404 para que el frontend sepa
+        // Si es su primer día y no tiene perfil, le devolvemos los datos iniciales
         if (profile.isEmpty()) {
-            throw new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Perfil de gamificación no encontrado.");
+            return ResponseEntity.ok(new GamificationProfileResource(UUID.randomUUID(), safeUserId, 0, 1, 1));
         }
 
         return ResponseEntity.ok(ProfileResourceFromAggregateAssembler.toResourceFromAggregate(profile.get()));
     }
 
     @GetMapping("/leaderboard")
-    public ResponseEntity<List<GamificationProfileResource>> getLeaderboard() {
-        var topPlayers = queryService.handle(new GetLeaderboardQuery(10)); // Trae el Top 10
+    public ResponseEntity<List<LeaderboardProfileResource>> getLeaderboard() {
+        // 1. Traemos el Top 10 de la base de datos de Gamificación
+        var topPlayers = queryService.handle(new GetLeaderboardQuery(10));
 
-        var resources = topPlayers.stream()
-                .map(ProfileResourceFromAggregateAssembler::toResourceFromAggregate)
-                .collect(Collectors.toList());
+        // 2. Cruzamos los datos con el módulo IAM para obtener los nombres
+        var resources = topPlayers.stream().map(profile -> {
+
+            String nombreMostrar = "Estudiante Anónimo"; // Valor por defecto por si algo falla
+
+            // Consultamos al IAM por el UUID del jugador
+            var userOpt = _userQueryService.handle(new GetUserByIdQuery(profile.getUserId()));
+
+            if (userOpt.isPresent()) {
+                var user = userOpt.get();
+                // Priorizamos el nombre completo, si no lo tiene, usamos el username
+                if (user.getFullName() != null && !user.getFullName().isBlank()) {
+                    nombreMostrar = user.getFullName();
+                } else if (user.getUsername() != null && !user.getUsername().isBlank()) {
+                    nombreMostrar = user.getUsername();
+                }
+            }
+
+            // Construimos la respuesta enriquecida
+            return new LeaderboardProfileResource(
+                    profile.getUserId(),
+                    nombreMostrar,
+                    profile.getTotalPoints(),
+                    profile.getCurrentLevel(),
+                    profile.getStreakDays()
+            );
+
+        }).collect(Collectors.toList());
 
         return ResponseEntity.ok(resources);
     }
 
     @GetMapping("/me/achievements")
     public ResponseEntity<List<BadgeResource>> getMyAchievements(){
-        //1. Extraemos el ID del estudiante de forma segura
+        // 1. Extraemos la autenticación del token
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
             throw new MissingJwtException();
         }
 
-        UUID safeUserId;
-        try {
-            safeUserId = UUID.fromString(authentication.getName());
-        } catch (IllegalArgumentException ex) {
-            throw new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Token inválido o usuario no autenticado.");
+        // 🚀 2. Traducimos el Username del token al UUID real usando tu IAM
+        String currentUsername = authentication.getName();
+        var userOpt = _userQueryService.handle(new GetUserByUsernameQuery(currentUsername));
+
+        if (userOpt.isEmpty()) {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuario no existe en la BD.");
         }
 
-        // 2. Buscamos sus logros
+        UUID safeUserId = userOpt.get().getId();
+
+        // 3. Buscamos sus logros usando el UUID seguro
         var achievements = queryService.handle(new GetUserAchievementsByUserIdQuery(safeUserId));
 
-        // 3. Transformamos la entidad al DTO
+        // 4. Transformamos la entidad al DTO
         var resources = achievements.stream()
                 .map(a -> new BadgeResource(
                         a.getBadge().getId(),
