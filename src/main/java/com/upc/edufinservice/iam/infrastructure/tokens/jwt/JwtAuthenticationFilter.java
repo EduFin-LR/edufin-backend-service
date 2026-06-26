@@ -7,33 +7,60 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenProvider tokenProvider;
+    private final JwtTokenProvider _tokenProvider;
 
     public JwtAuthenticationFilter(JwtTokenProvider tokenProvider) {
-        this.tokenProvider = tokenProvider;
+        _tokenProvider = tokenProvider;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+        try {
+            // 1. Extraemos el token del request usando nuestro método helper
+            String token = getJwtFromRequest(request);
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            if (tokenProvider.validateToken(token)) {
-                String username = tokenProvider.getUsernameFromToken(token);
-                // Autenticamos al usuario en el contexto de Spring Security
-                var auth = new UsernamePasswordAuthenticationToken(username, null, null);
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(auth);
+            // 2. Si hay token y es válido, autenticamos al usuario
+            if (StringUtils.hasText(token) && _tokenProvider.validateToken(token)) {
+                String username = _tokenProvider.getUsernameFromToken(token);
+
+                // Creamos la autenticación (Aquí podrías cargar roles si los tuvieras en el token)
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        username, null, new ArrayList<>());
+
+                // Le añadimos detalles de la petición (IP, sesión, etc.)
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                // Guardamos la autenticación en el contexto de seguridad (El usuario ya tiene pase libre)
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+
+        } catch (Exception e) {
+            // Ignoramos errores de token (como expiración o firmas inválidas)
+            // Esto permite que el request fluya como "Anónimo" y el SecurityConfig devuelva el JSON 401.
+            System.err.println("No se pudo establecer la autenticación en el contexto de seguridad: " + e.getMessage());
         }
+
+        // 3. Continuamos con la cadena de filtros
         filterChain.doFilter(request, response);
+    }
+
+    // --- MÉTODO HELPER PARA EXTRAER EL TOKEN ---
+    private String getJwtFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        // Verificamos que el encabezado no esté vacío y que empiece con "Bearer "
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            // Devolvemos solo el token, quitando la palabra "Bearer " (los primeros 7 caracteres)
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 }

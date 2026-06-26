@@ -13,6 +13,7 @@ import com.upc.edufinservice.iam.interfaces.rest.transform.UserResourceFromAggre
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -52,16 +53,19 @@ public class AuthenticationController {
 
     @PostMapping("/sign-in")
     public ResponseEntity<?> signIn(@RequestBody SignInResource resource){
-        //1. Buscar al usuario
+        // 1. Buscar al usuario
         var userOpt = _userQueryService.handle(new GetUserByUsernameQuery(resource.username()));
 
+        // 2. Validar credenciales y lanzar excepción si fallan
         if(userOpt.isEmpty() || !_passwordEncoder.matches(resource.password(), userOpt.get().getPasswordHash())){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales inválidas");
+            // Aquí está la magia: ¡Lanzamos la excepción!
+            throw new BadCredentialsException("Credenciales inválidas");
         }
-        //2. genera token
+
+        // 3. Generar token
         var token = _tokenProvider.generateToken(userOpt.get().getUsername());
 
-        //3. Retornar el token
+        // 4. Retornar el recurso autenticado
         return ResponseEntity.ok(new AuthenticatedUserResource(userOpt.get().getId(), userOpt.get().getUsername(), token));
     }
 }

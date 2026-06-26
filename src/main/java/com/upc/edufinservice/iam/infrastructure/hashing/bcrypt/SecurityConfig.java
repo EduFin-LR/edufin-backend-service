@@ -1,10 +1,12 @@
 package com.upc.edufinservice.iam.infrastructure.hashing.bcrypt;
 
-import com.upc.edufinservice.iam.infrastructure.tokens.jwt.JwtAuthenticationFilter;
-import com.upc.edufinservice.iam.infrastructure.tokens.jwt.JwtTokenProvider;
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,9 +17,16 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.upc.edufinservice.iam.infrastructure.tokens.jwt.JwtAuthenticationFilter;
+import com.upc.edufinservice.iam.infrastructure.tokens.jwt.JwtTokenProvider;
+import com.upc.edufinservice.shared.infrastructure.exceptions.ErrorResponse;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtTokenProvider _tokenProvider;
@@ -37,6 +46,32 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .exceptionHandling(exception -> exception
+                        // Maneja el 401 (No hay token o es inválido)
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            ErrorResponse errorResponse = new ErrorResponse(
+                                    401,
+                                    "Unauthorized",
+                                    "Debes iniciar sesión proporcionando un Token válido."
+                            );
+                            response.getWriter().write(new ObjectMapper().writeValueAsString(errorResponse));
+                            response.getWriter().flush();
+                        })
+                        // Maneja el 403 (Hay token válido, pero intentó entrar a una ruta prohibida)
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            ErrorResponse errorResponse = new ErrorResponse(
+                                    403,
+                                    "Forbidden",
+                                    "Tu rol actual no tiene acceso a este recurso."
+                            );
+                            response.getWriter().write(new ObjectMapper().writeValueAsString(errorResponse));
+                            response.getWriter().flush();
+                        })
+                )
                 .cors(cors-> cors.configurationSource(corsConfigurationSource()))
                 // Desactivamos CSRF porque usaremos JWT (no necesitamos protección de formularios)
                 .csrf(AbstractHttpConfigurer::disable)
@@ -48,6 +83,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Permitimos libre acceso a todo lo que esté bajo /iam/auth (login, registro, etc)
                         .requestMatchers("/iam/auth/**").permitAll()
+                    // Permitimos el endpoint interno de error para evitar respuestas HTML por defecto
+                    .requestMatchers("/error").permitAll()
                         // Permitimos libre acceso a Swagger para poder probar
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // TODO: Aquí pondremos las rutas protegidas en el futuro
