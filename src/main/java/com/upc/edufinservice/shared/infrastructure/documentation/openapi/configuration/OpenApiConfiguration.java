@@ -17,7 +17,7 @@ public class OpenApiConfiguration {
         return new OpenAPI()
                 .components(new Components().addSecuritySchemes("bearer-key",
                         new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")))
-                .info(new Info().title("EduFin API").version("1.0.0"))
+                .info(new Info().title("EduFin API").version("2.0.0"))
                 .addSecurityItem(new SecurityRequirement().addList("bearer-key"));
 
     }

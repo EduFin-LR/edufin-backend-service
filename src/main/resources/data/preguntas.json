@@ -1,0 +1,1082 @@
+﻿[
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Elaboración de un Presupuesto",
+    "question_text": "Acabas de recibir tu primer sueldo de practicante en Lima. ¿Cuál es el primer paso fundamental para armar tu presupuesto mensual?",
+    "explanation": "¡Exacto! La respuesta es identificar tus ingresos netos y listar tus gastos fijos y variables. Es la base para saber con cuánto dinero real cuentas antes de empezar a gastar.",
+    "options": [
+      { "option_text": "Identificar ingresos netos y listar gastos fijos y variables", "is_correct": true },
+      { "option_text": "Ir a celebrar a Popeyes y luego ver cuánto queda", "is_correct": false },
+      { "option_text": "Pagar todas las suscripciones de juegos y streaming primero", "is_correct": false },
+      { "option_text": "Pedir un adelanto de sueldo por si acaso", "is_correct": false },
+      { "option_text": "Dejar el dinero en Yape y gastarlo conforme pasen los días", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Elaboración de un Presupuesto",
+    "question_text": "Has decidido usar la regla 50/30/20 para tu presupuesto. ¿Qué significa el 20% en esta regla?",
+    "explanation": "¡Exacto! La respuesta es que el 20% debe destinarse al ahorro e inversión. El 50% es para necesidades básicas y el 30% para gustos personales.",
+    "options": [
+      { "option_text": "Destinarlo al ahorro, pago de deudas o inversión", "is_correct": true },
+      { "option_text": "Gastarlo en salidas de fin de semana", "is_correct": false },
+      { "option_text": "Pagar el alquiler y los servicios básicos", "is_correct": false },
+      { "option_text": "Dejarlo como saldo en la billetera digital para imprevistos diarios", "is_correct": false },
+      { "option_text": "Usarlo exclusivamente para comprar ropa o tecnología", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Elaboración de un Presupuesto",
+    "question_text": "Armaste tu presupuesto del mes, pero te das cuenta de que tus gastos superan a tus ingresos. ¿Qué debes hacer primero?",
+    "explanation": "¡Exacto! La respuesta es identificar y reducir los gastos variables y no esenciales. Es la forma más rápida de equilibrar tu presupuesto sin endeudarte.",
+    "options": [
+      { "option_text": "Revisar y recortar los gastos variables o gustos innecesarios", "is_correct": true },
+      { "option_text": "Pedir un préstamo rápido por aplicativo", "is_correct": false },
+      { "option_text": "Usar la tarjeta de crédito para cubrir la diferencia", "is_correct": false },
+      { "option_text": "Dejar de pagar la mensualidad de la universidad", "is_correct": false },
+      { "option_text": "Ignorar el presupuesto y esperar al próximo mes", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Elaboración de un Presupuesto",
+    "question_text": "En tu presupuesto incluyes el pago mensual de S/ 80 por tu plan Black del gimnasio. ¿Qué tipo de gasto es este?",
+    "explanation": "¡Exacto! La respuesta es un gasto fijo. Es un monto constante que debes pagar todos los meses, independientemente de si vas a entrenar o no.",
+    "options": [
+      { "option_text": "Gasto fijo", "is_correct": true },
+      { "option_text": "Gasto variable", "is_correct": false },
+      { "option_text": "Gasto hormiga", "is_correct": false },
+      { "option_text": "Inversión a corto plazo", "is_correct": false },
+      { "option_text": "Ahorro programado", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Elaboración de un Presupuesto",
+    "question_text": "¿Cuál es la mejor herramienta para llevar el control diario de tu presupuesto si eres estudiante?",
+    "explanation": "¡Exacto! La respuesta es usar una app de finanzas o un Excel en tu celular/PC. Lo importante es que sea accesible para registrar tus gastos en tiempo real.",
+    "options": [
+      { "option_text": "Una aplicación móvil de finanzas o una hoja de cálculo", "is_correct": true },
+      { "option_text": "Guardar todas las boletas de pago en una caja de zapatos", "is_correct": false },
+      { "option_text": "Intentar recordar todo de memoria a fin de mes", "is_correct": false },
+      { "option_text": "Revisar solo el saldo del cajero automático", "is_correct": false },
+      { "option_text": "Anotar en servilletas cuando comes en la calle", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Elaboración de un Presupuesto",
+    "question_text": "Hiciste un 'cachuelo' instalando software y te pagaron S/ 150 extras este mes. ¿Cómo deberías registrarlo en tu presupuesto?",
+    "explanation": "¡Exacto! La respuesta es registrarlo como un ingreso variable. Al no ser un sueldo fijo, te ayuda a destinar un dinero extra al ahorro o a un fondo de emergencia.",
+    "options": [
+      { "option_text": "Como un ingreso variable u ocasional", "is_correct": true },
+      { "option_text": "Como un ingreso fijo mensual", "is_correct": false },
+      { "option_text": "No registrarlo, usarlo solo para salidas", "is_correct": false },
+      { "option_text": "Como una deuda a favor", "is_correct": false },
+      { "option_text": "Como un reembolso de tarjeta", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Gastos Hormiga y Ahorro",
+    "question_text": "Todos los días entre clases pasas por Tambo a comprarte una gaseosa y unas galletas pagando S/ 5. ¿Cómo se le conoce a este tipo de consumo?",
+    "explanation": "¡Exacto! La respuesta es Gasto Hormiga. Son compras pequeñas y frecuentes que parecen inofensivas, pero a fin de mes suman una cantidad fuerte de dinero.",
+    "options": [
+      { "option_text": "Gasto hormiga", "is_correct": true },
+      { "option_text": "Gasto fijo mensual", "is_correct": false },
+      { "option_text": "Inversión alimenticia", "is_correct": false },
+      { "option_text": "Ahorro pasivo", "is_correct": false },
+      { "option_text": "Fondo de contingencia", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Gastos Hormiga y Ahorro",
+    "question_text": "Decides pedir comida por Rappi todos los fines de semana en vez de cocinar. A fin de mes, tu presupuesto está en rojo. ¿Cuál sería la mejor alternativa?",
+    "explanation": "¡Exacto! La respuesta es reducir los deliverys y organizar tus comidas (meal prep). Cocinar en casa es mucho más barato y cuida tu bolsillo.",
+    "options": [
+      { "option_text": "Planificar tus comidas de la semana y cocinar en casa", "is_correct": true },
+      { "option_text": "Pedir el delivery con tarjeta de crédito para pagarlo después", "is_correct": false },
+      { "option_text": "Solo pedir comida rápida porque es más barato a la larga", "is_correct": false },
+      { "option_text": "Pedir préstamos a tus amigos para cubrir los deliverys", "is_correct": false },
+      { "option_text": "Dejar de cenar los fines de semana", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Gastos Hormiga y Ahorro",
+    "question_text": "Pagas mensualmente Disney+, Netflix, y una membresía de juegos de PC, pero solo usas una. ¿Qué representan estas suscripciones que no usas?",
+    "explanation": "¡Exacto! Representan gastos vampiro o fugas de dinero. Son pagos recurrentes automáticos por servicios que no aprovechas y que drenan tu cuenta.",
+    "options": [
+      { "option_text": "Fugas de dinero que debes cancelar inmediatamente", "is_correct": true },
+      { "option_text": "Gastos necesarios para mantener tu estatus digital", "is_correct": false },
+      { "option_text": "Una forma de ahorro a largo plazo", "is_correct": false },
+      { "option_text": "Inversiones en entretenimiento pasivo", "is_correct": false },
+      { "option_text": "Gastos fijos intocables", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Gastos Hormiga y Ahorro",
+    "question_text": "Compras micropagos dentro de un juego (ej. Valorant Points o skins de LoL) cada vez que sale uno nuevo. ¿Cuál es el riesgo de esto?",
+    "explanation": "¡Exacto! El riesgo es perder el control porque los montos pequeños no duelen al instante, pero destruyen tu capacidad de ahorro mensual.",
+    "options": [
+      { "option_text": "Perder el control de tus finanzas por la acumulación de montos pequeños", "is_correct": true },
+      { "option_text": "Que las skins bajen de precio al mes siguiente", "is_correct": false },
+      { "option_text": "Que el banco bloquee tu tarjeta por comprar muchos juegos", "is_correct": false },
+      { "option_text": "Mejorar tu historial crediticio demasiado rápido", "is_correct": false },
+      { "option_text": "No hay riesgo, es una buena inversión a futuro", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Gastos Hormiga y Ahorro",
+    "question_text": "¿Cuál es la regla de oro para lograr ahorrar de manera efectiva cada mes?",
+    "explanation": "¡Exacto! La regla de oro es 'págate a ti mismo primero'. Separa el dinero del ahorro apenas recibes tus ingresos, no esperes a ver qué te sobra a fin de mes.",
+    "options": [
+      { "option_text": "Separar el porcentaje de ahorro apenas recibes tu dinero", "is_correct": true },
+      { "option_text": "Ahorrar solo las monedas de S/ 1 o S/ 5 que te sobren", "is_correct": false },
+      { "option_text": "Esperar al último día del mes para ver si sobró algo en la cuenta", "is_correct": false },
+      { "option_text": "Meter el dinero en una alcancía que puedas romper en cualquier momento", "is_correct": false },
+      { "option_text": "Pedir prestado para ahorrar", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Gastos Hormiga y Ahorro",
+    "question_text": "Decides aplicar el reto de las 52 semanas para ahorrar. Empiezas con S/ 1 la primera semana, S/ 2 la segunda, etc. ¿Qué beneficio principal tiene este reto?",
+    "explanation": "¡Exacto! El principal beneficio es crear el hábito del ahorro de manera progresiva y sin sentir un gran impacto en tus finanzas desde el inicio.",
+    "options": [
+      { "option_text": "Crear y consolidar el hábito del ahorro progresivamente", "is_correct": true },
+      { "option_text": "Volverte millonario en un año", "is_correct": false },
+      { "option_text": "Generar altos intereses en tu cuenta bancaria", "is_correct": false },
+      { "option_text": "Evitar pagar impuestos anuales", "is_correct": false },
+      { "option_text": "Pagar tus estudios universitarios al 100%", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Establecer Metas Financieras",
+    "question_text": "Quieres comprar un juego nuevo en Steam que cuesta S/ 120. ¿Qué tipo de meta financiera es esta?",
+    "explanation": "¡Exacto! Es una meta a corto plazo, ya que es un monto accesible que puedes alcanzar en unas pocas semanas o un par de meses ahorrando.",
+    "options": [
+      { "option_text": "Meta a corto plazo", "is_correct": true },
+      { "option_text": "Meta a mediano plazo", "is_correct": false },
+      { "option_text": "Meta a largo plazo", "is_correct": false },
+      { "option_text": "Fondo de inversión", "is_correct": false },
+      { "option_text": "Gasto fijo inamovible", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Establecer Metas Financieras",
+    "question_text": "Deseas renovar tu laptop para tus proyectos de ingeniería de software. Necesitas S/ 3500 y planeas juntarlo en 1 año. ¿Cómo aplicas el criterio 'Medible' de una meta SMART?",
+    "explanation": "¡Exacto! Es medible porque sabes exactamente que debes ahorrar unos S/ 291 mensuales para llegar a los S/ 3500 en el tiempo establecido.",
+    "options": [
+      { "option_text": "Calculando el monto exacto mensual que debes ahorrar para llegar a la cifra", "is_correct": true },
+      { "option_text": "Simplemente deseando tener la laptop pronto", "is_correct": false },
+      { "option_text": "Comprándola a crédito a 36 cuotas sin importar el interés", "is_correct": false },
+      { "option_text": "Sabiendo que la laptop es de color gris", "is_correct": false },
+      { "option_text": "Esperar a que haya Cyber Wow y pedir prestado a un amigo", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Establecer Metas Financieras",
+    "question_text": "Tus ingresos bajaron este mes porque tuviste menos horas de prácticas. ¿Qué debes hacer con tus metas financieras?",
+    "explanation": "¡Exacto! Las metas financieras deben ser flexibles. Si tus ingresos bajan, ajustas los montos o extiendes el plazo, pero no abandonas la meta.",
+    "options": [
+      { "option_text": "Ajustar los plazos o reducir el monto de ahorro mensual temporalmente", "is_correct": true },
+      { "option_text": "Rendirte y gastar los ahorros que ya tenías", "is_correct": false },
+      { "option_text": "Pedir un préstamo bancario para seguir ahorrando la misma cantidad", "is_correct": false },
+      { "option_text": "Dejar de comer para cumplir la meta sí o sí", "is_correct": false },
+      { "option_text": "Endeudarte con la tarjeta de crédito para compensar", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Establecer Metas Financieras",
+    "question_text": "¿Por qué es importante priorizar tus metas financieras?",
+    "explanation": "¡Exacto! Es importante porque los recursos (tu dinero) son limitados. Priorizar te ayuda a enfocarte en lo más urgente o importante primero, como pagar la matrícula antes de un viaje.",
+    "options": [
+      { "option_text": "Porque el dinero es limitado y debes enfocar tus esfuerzos en lo más importante primero", "is_correct": true },
+      { "option_text": "Para que el banco vea que eres responsable y te dé más tarjetas", "is_correct": false },
+      { "option_text": "Porque si no lo haces, la Sunat te cobrará más impuestos", "is_correct": false },
+      { "option_text": "Para poder presumir en redes sociales lo que vas comprando", "is_correct": false },
+      { "option_text": "Para gastar todo el sueldo más rápido en la primera semana", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Establecer Metas Financieras",
+    "question_text": "Para asegurarte de cumplir tu meta de ahorro mensual sin olvidarte, ¿cuál es la mejor estrategia usando la app de tu banco (ej. BCP o Interbank)?",
+    "explanation": "¡Exacto! Configurar un ahorro automático desde tu cuenta sueldo a una cuenta de ahorros separa el dinero apenas llega, evitando la tentación de gastarlo.",
+    "options": [
+      { "option_text": "Programar una transferencia automática hacia una cuenta de ahorros separada", "is_correct": true },
+      { "option_text": "Revisar la app todos los días sin mover el dinero", "is_correct": false },
+      { "option_text": "Pasar todo el dinero a Plin o Yape para tenerlo a la mano", "is_correct": false },
+      { "option_text": "Pedir un adelanto de sueldo cada inicio de mes", "is_correct": false },
+      { "option_text": "Sacar el dinero en efectivo y guardarlo en tu mochila", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Establecer Metas Financieras",
+    "question_text": "Una meta a largo plazo para un joven de 22 años podría ser...",
+    "explanation": "¡Exacto! Pagar la cuota inicial de un departamento es una meta a largo plazo, ya que requiere años de ahorro y planificación financiera.",
+    "options": [
+      { "option_text": "Ahorrar para la cuota inicial de un departamento o vivienda", "is_correct": true },
+      { "option_text": "Comprar las entradas para el concierto de la próxima semana", "is_correct": false },
+      { "option_text": "Pagar la luz y el agua del mes actual", "is_correct": false },
+      { "option_text": "Comprar unas zapatillas en el próximo Cyber Wow", "is_correct": false },
+      { "option_text": "Recargar saldo en el celular para datos móviles", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Fondo de Emergencia",
+    "question_text": "¿Qué es exactamente un fondo de emergencia?",
+    "explanation": "¡Exacto! Es un ahorro exclusivo para imprevistos urgentes (como un accidente o perder el trabajo), que te evita endeudarte en momentos de crisis.",
+    "options": [
+      { "option_text": "Un dinero guardado exclusivamente para cubrir eventos imprevistos y urgentes", "is_correct": true },
+      { "option_text": "Un ahorro para comprar regalos de Navidad o cumpleaños", "is_correct": false },
+      { "option_text": "El saldo que te queda en Yape a fin de mes", "is_correct": false },
+      { "option_text": "Una tarjeta de crédito con el límite al máximo", "is_correct": false },
+      { "option_text": "Dinero que prestas a tus amigos y esperas que te devuelvan", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Fondo de Emergencia",
+    "question_text": "Según los expertos financieros, ¿cuánto dinero deberías tener ahorrado en tu fondo de emergencia idealmente?",
+    "explanation": "¡Exacto! Lo ideal es tener entre 3 a 6 meses de tus gastos fijos mensuales. Así, si pierdes tus ingresos, tienes tiempo para recuperarte sin desesperar.",
+    "options": [
+      { "option_text": "El equivalente a 3 a 6 meses de tus gastos fijos indispensables", "is_correct": true },
+      { "option_text": "Solo S/ 100 por si acaso", "is_correct": false },
+      { "option_text": "El 10% de tu sueldo de un mes", "is_correct": false },
+      { "option_text": "Un mes de gastos dedicado a pura diversión", "is_correct": false },
+      { "option_text": "Todo el dinero que ganes durante 5 años", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Fondo de Emergencia",
+    "question_text": "Estás a mitad de ciclo en la universidad y se quema la placa de tu laptop con tu tesis adentro. ¿Es válido usar el fondo de emergencia aquí?",
+    "explanation": "¡Exacto! Es totalmente válido porque es una emergencia real que afecta tus estudios o trabajo, y necesitas solucionarlo de inmediato.",
+    "options": [
+      { "option_text": "Sí, es una urgencia imprevista que afecta tus actividades principales", "is_correct": true },
+      { "option_text": "No, debes esperar a que te presten dinero para no tocar tus ahorros", "is_correct": false },
+      { "option_text": "No, el fondo es solo para emergencias médicas exclusivamente", "is_correct": false },
+      { "option_text": "Sí, pero solo si compras una laptop gamer de última generación", "is_correct": false },
+      { "option_text": "No, es mejor dejar la universidad por ese ciclo", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Fondo de Emergencia",
+    "question_text": "Sale a la venta el abono de tu equipo favorito y no tienes efectivo. ¿Deberías sacar de tu fondo de emergencia para pagarlo?",
+    "explanation": "¡Exacto! La respuesta es NO. Eventos de entretenimiento o gustos no son emergencias. Gastar el fondo aquí te deja vulnerable ante una crisis real.",
+    "options": [
+      { "option_text": "No, porque el entretenimiento y los gustos no son emergencias vitales", "is_correct": true },
+      { "option_text": "Sí, porque el fútbol es una pasión y hay que aprovechar la preventa", "is_correct": false },
+      { "option_text": "Sí, siempre que prometas devolverlo el próximo mes", "is_correct": false },
+      { "option_text": "Sí, pero solo sacando la mitad del costo de la entrada", "is_correct": false },
+      { "option_text": "Sí, para eso está el dinero, para disfrutarlo", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Fondo de Emergencia",
+    "question_text": "¿En qué tipo de cuenta financiera deberías guardar tu fondo de emergencia para no perder poder adquisitivo?",
+    "explanation": "¡Exacto! Una cuenta de ahorros de alto rendimiento (High-Yield) te paga intereses regulares y mantiene tu dinero líquido (disponible para retiros rápidos).",
+    "options": [
+      { "option_text": "En una cuenta de ahorros de alto rendimiento que te permita retirar rápido", "is_correct": true },
+      { "option_text": "Debajo del colchón o en una alcancía en tu cuarto", "is_correct": false },
+      { "option_text": "Invertido todo en criptomonedas o acciones muy riesgosas", "is_correct": false },
+      { "option_text": "En una cuenta a plazo fijo a 5 años sin opción de retiro", "is_correct": false },
+      { "option_text": "En la misma cuenta sueldo donde haces tus gastos diarios", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Fondo de Emergencia",
+    "question_text": "Aún no tienes fondo de emergencia y ganas como practicante. ¿Cómo empiezas a construirlo?",
+    "explanation": "¡Exacto! La clave es empezar con porcentajes pequeños (ej. 5% o 10% de tu sueldo) mes a mes. Lo importante es la constancia, no el monto inicial.",
+    "options": [
+      { "option_text": "Separando un porcentaje pequeño pero constante cada mes hasta llegar a la meta", "is_correct": true },
+      { "option_text": "Pidiendo un préstamo al banco y guardando ese dinero como fondo", "is_correct": false },
+      { "option_text": "Esperar a titularte y ganar un sueldo alto para recién empezar", "is_correct": false },
+      { "option_text": "Dejar de comer una semana entera para juntarlo de golpe", "is_correct": false },
+      { "option_text": "Apostando en aplicaciones deportivas para duplicar tu sueldo rápido", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Planificación de Gastos Universitarios",
+    "question_text": "Te vas en el Metropolitano todos los días a la universidad. ¿Cuál es la mejor manera de optimizar este gasto en tu presupuesto?",
+    "explanation": "¡Exacto! Recargar tu tarjeta del Metropolitano o Corredor con el monto exacto mensual o semanal te ayuda a controlar la fuga de dinero y tramitar el medio pasaje es clave.",
+    "options": [
+      { "option_text": "Tramitar tu carné universitario y presupuestar la recarga semanal/mensual", "is_correct": true },
+      { "option_text": "Tomar taxi o app de transporte cuando te levantes tarde", "is_correct": false },
+      { "option_text": "Pagar con pasaje adulto porque da pereza sacar el carné", "is_correct": false },
+      { "option_text": "Pedirle a un amigo que te pague el pasaje siempre", "is_correct": false },
+      { "option_text": "No presupuestarlo y sacar monedas de la billetera al azar", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Planificación de Gastos Universitarios",
+    "question_text": "Tus amigos proponen comer en restaurantes cerca a la universidad todos los días. Esto afecta tu presupuesto. ¿Qué alternativa financiera inteligente puedes tomar?",
+    "explanation": "¡Exacto! Aprovechar el menú universitario subsidiado o llevar tu propia lonchera son las mejores estrategias para cuidar tu bolsillo sin dejar de comer bien.",
+    "options": [
+      { "option_text": "Llevar lonchera desde casa o comprar el menú universitario de la cafetería", "is_correct": true },
+      { "option_text": "Reventar la tarjeta de crédito para seguirles el ritmo a tus amigos", "is_correct": false },
+      { "option_text": "Comprar solo chatarra y gaseosa porque es más barato a corto plazo", "is_correct": false },
+      { "option_text": "No almorzar para ahorrar", "is_correct": false },
+      { "option_text": "Obligar a tus amigos a que te inviten", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Planificación de Gastos Universitarios",
+    "question_text": "Llega el ciclo de Taller de Proyecto y necesitas varios libros de programación y arquitectura de software. ¿Cómo ahorras en este rubro?",
+    "explanation": "¡Exacto! Usar la biblioteca virtual de la universidad, comprar libros de segunda mano o alquilarlos te ahorra cientos de soles por ciclo.",
+    "options": [
+      { "option_text": "Usar la biblioteca de la universidad, recursos digitales o libros de segunda mano", "is_correct": true },
+      { "option_text": "Comprar todos los libros originales nuevos con tapa dura", "is_correct": false },
+      { "option_text": "No leer nada y solo repasar de las diapositivas del profe", "is_correct": false },
+      { "option_text": "Pedir un préstamo para pagar material bibliográfico caro", "is_correct": false },
+      { "option_text": "Fotocopiar todos los libros incurriendo en gastos altos de impresión", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Planificación de Gastos Universitarios",
+    "question_text": "Para un trabajo grupal final deciden comprar materiales y maquetas. Cada uno debe poner S/ 30. ¿Qué herramienta facilita dividir esta cuenta sin problemas?",
+    "explanation": "¡Exacto! Las billeteras digitales como Yape o Plin son perfectas para dividir cuentas entre compañeros al instante y llevar registro de quién pagó.",
+    "options": [
+      { "option_text": "Usar billeteras digitales (Yape/Plin) para recolectar el dinero rápido y sin comisiones", "is_correct": true },
+      { "option_text": "Que uno asuma el gasto y esperar que le paguen en efectivo el próximo mes", "is_correct": false },
+      { "option_text": "Hacer una transferencia interbancaria pagando comisión de otra plaza", "is_correct": false },
+      { "option_text": "Ir todos juntos a pagar con monedas a la caja de la tienda", "is_correct": false },
+      { "option_text": "Emitir un cheque a nombre del delegado del grupo", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Planificación de Gastos Universitarios",
+    "question_text": "Llegan los exámenes finales y sabes que gastarás más en copias, café y traslados tarde por la noche. ¿Cómo prevés esto en tu presupuesto?",
+    "explanation": "¡Exacto! Debes crear una categoría de 'Gastos de Fin de Ciclo' o aumentar tu fondo para imprevistos universitarios en esas semanas críticas.",
+    "options": [
+      { "option_text": "Asignar un rubro extra en tu presupuesto mensual para las semanas de parciales/finales", "is_correct": true },
+      { "option_text": "Confiar en que te alcance el mismo dinero de semanas normales", "is_correct": false },
+      { "option_text": "Dejar de estudiar para no gastar en copias o café", "is_correct": false },
+      { "option_text": "Gastar todo tu fondo de emergencia de salud en pasajes", "is_correct": false },
+      { "option_text": "Robarle café y galletas a tus compañeros", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Planificación de Gastos Universitarios",
+    "question_text": "¿Por qué es importante planificar los gastos universitarios desde el día 1 del ciclo académico?",
+    "explanation": "¡Exacto! Planificar desde el inicio evita estrés financiero en las semanas finales y asegura que siempre tengas para lo indispensable (matrícula, pasajes y alimentación).",
+    "options": [
+      { "option_text": "Para evitar el estrés financiero a fin de ciclo y asegurar liquidez para lo esencial", "is_correct": true },
+      { "option_text": "Para poder pedir una beca internacional al finalizar la carrera", "is_correct": false },
+      { "option_text": "Para que los profesores vean tu buen comportamiento", "is_correct": false },
+      { "option_text": "Para gastar todo lo planificado de golpe en la primera semana de clases", "is_correct": false },
+      { "option_text": "No es importante, la vida universitaria se trata de improvisar", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Inflación y el Valor del Dinero",
+    "question_text": "El año pasado, el menú cerca a la u costaba S/ 10, pero ahora cuesta S/ 12 por la misma comida. ¿Qué fenómeno económico explica esto?",
+    "explanation": "¡Exacto! Eso es la inflación: el aumento generalizado y sostenido de los precios de bienes y servicios en el tiempo, lo que reduce el valor de tu dinero.",
+    "options": [
+      { "option_text": "La inflación", "is_correct": true },
+      { "option_text": "La deflación", "is_correct": false },
+      { "option_text": "El tipo de cambio del dólar", "is_correct": false },
+      { "option_text": "La devaluación internacional", "is_correct": false },
+      { "option_text": "El libre mercado sin regulación", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Inflación y el Valor del Dinero",
+    "question_text": "Si tienes S/ 1000 ahorrados debajo de tu colchón durante 5 años en un país con inflación del 3% anual. ¿Qué sucede con tu dinero?",
+    "explanation": "¡Exacto! El dinero pierde poder adquisitivo. Seguirás teniendo billetes por S/ 1000 físicos, pero podrás comprar muchas menos cosas que hace 5 años.",
+    "options": [
+      { "option_text": "Pierde poder adquisitivo porque los precios suben y compras menos con el mismo dinero", "is_correct": true },
+      { "option_text": "Gana valor por ser billetes antiguos de colección", "is_correct": false },
+      { "option_text": "Se multiplica porque el dinero en físico siempre vale más", "is_correct": false },
+      { "option_text": "Mantiene exactamente el mismo valor sin importar los años", "is_correct": false },
+      { "option_text": "Genera intereses automáticamente por estar guardado", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Inflación y el Valor del Dinero",
+    "question_text": "Para evitar que la inflación se coma tus ahorros, decides abrir una cuenta en el banco. ¿Qué debes revisar al elegir la cuenta?",
+    "explanation": "¡Exacto! Debes revisar la TREA (Tasa de Rendimiento Efectivo Anual). Lo ideal es que esta tasa sea mayor al porcentaje de la inflación para que tu dinero realmente crezca.",
+    "options": [
+      { "option_text": "Que la Tasa de Rendimiento (TREA) sea igual o mayor a la inflación anual", "is_correct": true },
+      { "option_text": "Que te regalen una olla arrocera por abrir la cuenta", "is_correct": false },
+      { "option_text": "Que el banco tenga un local bonito cerca a tu casa", "is_correct": false },
+      { "option_text": "Que la tarjeta de débito tenga un diseño exclusivo", "is_correct": false },
+      { "option_text": "Que te cobren mantenimiento mensual alto", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Inflación y el Valor del Dinero",
+    "question_text": "¿Cómo afecta la inflación a las deudas con tasa de interés fija?",
+    "explanation": "¡Exacto! Irónicamente, en episodios de inflación moderada, las deudas a tasa fija se 'abaratan' en términos reales, porque pagas la misma cuota con un dinero que vale menos.",
+    "options": [
+      { "option_text": "Las cuotas se mantienen iguales, por lo que el peso real de la deuda disminuye", "is_correct": true },
+      { "option_text": "El banco te sube la cuota automáticamente cada mes", "is_correct": false },
+      { "option_text": "Te cancelan el crédito por inestabilidad económica", "is_correct": false },
+      { "option_text": "La deuda aumenta mágicamente al doble", "is_correct": false },
+      { "option_text": "Tienes que devolver el producto que compraste a crédito", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Inflación y el Valor del Dinero",
+    "question_text": "¿Qué herramienta de inversión es ideal para jóvenes que buscan proteger su dinero de la inflación a largo plazo (ej. fondos mutuos o depósitos a plazo fijo)?",
+    "explanation": "¡Exacto! Los Depósitos a Plazo Fijo o Fondos Mutuos conservadores en entidades reguladas por la SBS son excelentes para generar rentabilidad superior a la inflación.",
+    "options": [
+      { "option_text": "Depósitos a Plazo Fijo o Fondos Mutuos regulados por la SBS", "is_correct": true },
+      { "option_text": "Comprar ropa de marca para revenderla usada", "is_correct": false },
+      { "option_text": "Prestar dinero a desconocidos por Facebook", "is_correct": false },
+      { "option_text": "Guardarlo en una billetera virtual que no paga intereses", "is_correct": false },
+      { "option_text": "Participar en 'juntas' o 'pirámides' sin respaldo legal", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Finanzas Personales Básicas",
+    "topic_category": "Finanzas Básicas",
+    "dkt_skill_id": 1,
+    "lesson_title": "Inflación y el Valor del Dinero",
+    "question_text": "Si tu sueldo como practicante no ha subido en 2 años, pero los pasajes y alimentos sí. ¿Qué ha ocurrido con tu salario?",
+    "explanation": "¡Exacto! Has sufrido una reducción de tu salario real (poder adquisitivo), aunque el salario nominal (el número en tu boleta) siga siendo el mismo.",
+    "options": [
+      { "option_text": "Tu salario real y poder adquisitivo han disminuido", "is_correct": true },
+      { "option_text": "Tu salario ha aumentado por efecto de la inflación", "is_correct": false },
+      { "option_text": "No ha pasado nada, sigues ganando lo mismo", "is_correct": false },
+      { "option_text": "Te has vuelto más rico porque gastas más rápido", "is_correct": false },
+      { "option_text": "El banco te compensará a fin de año", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Uso seguro de Tarjetas y Billeteras Digitales",
+    "question_text": "Al hacer una transferencia por Yape o Plin a un compañero de la universidad, ¿cuál es el paso de seguridad más importante antes de confirmar?",
+    "explanation": "¡Exacto! Siempre debes verificar el nombre completo y el número del destinatario. Una vez enviado el dinero, los bancos no pueden revertir la transferencia por error humano.",
+    "options": [
+      { "option_text": "Verificar el nombre completo y número de la persona en la pantalla de confirmación", "is_correct": true },
+      { "option_text": "Tomar un pantallazo rápido sin leer para tener evidencia", "is_correct": false },
+      { "option_text": "Mandar un sol de prueba y ver si le llega", "is_correct": false },
+      { "option_text": "Confirmar rápido para que no se cierre la sesión de la app", "is_correct": false },
+      { "option_text": "Hacer la transferencia desde una red Wi-Fi pública para ahorrar datos", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Uso seguro de Tarjetas y Billeteras Digitales",
+    "question_text": "Estás en el cajero automático del banco. ¿Qué debes hacer al momento de ingresar tu clave secreta de 4 dígitos?",
+    "explanation": "¡Exacto! Cubrir el teclado con la mano es la medida básica para evitar que cámaras ocultas instaladas por estafadores o personas detrás capten tu PIN.",
+    "options": [
+      { "option_text": "Cubrir el teclado con tu otra mano mientras digitas la clave", "is_correct": true },
+      { "option_text": "Pedirle ayuda al guardia del banco para que la digite por ti", "is_correct": false },
+      { "option_text": "Decirla en voz alta para recordarla mejor", "is_correct": false },
+      { "option_text": "Usar la misma clave que tu fecha de cumpleaños por si te olvidas", "is_correct": false },
+      { "option_text": "Escribirla rápido y salir corriendo del cajero", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Uso seguro de Tarjetas y Billeteras Digitales",
+    "question_text": "Te roban el celular en el transporte público y tienes todas tus apps bancarias abiertas o con sesión iniciada. ¿Cuál es la primera acción a tomar?",
+    "explanation": "¡Exacto! Bloquear la línea operadora no es suficiente; debes llamar de inmediato a tu banco o usar banca por internet para bloquear tus tarjetas y cuentas digitales.",
+    "options": [
+      { "option_text": "Llamar inmediatamente a tu banco para bloquear tus tarjetas y cuentas", "is_correct": true },
+      { "option_text": "Escribir un estado de Facebook avisando que te robaron", "is_correct": false },
+      { "option_text": "Ir a comprar otro celular al día siguiente", "is_correct": false },
+      { "option_text": "Cambiar la contraseña de Netflix y Spotify", "is_correct": false },
+      { "option_text": "Esperar a ver si los ladrones te devuelven el chip", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Uso seguro de Tarjetas y Billeteras Digitales",
+    "question_text": "¿Cuál es la función del código CVV de 3 dígitos al reverso de tu tarjeta (física o virtual)?",
+    "explanation": "¡Exacto! El CVV es un código de seguridad para validar transacciones por internet (Card Not Present). Es clave no compartirlo ni tomarle fotos.",
+    "options": [
+      { "option_text": "Validar y autorizar compras por internet como medida de seguridad", "is_correct": true },
+      { "option_text": "Es tu contraseña para sacar dinero del cajero automático", "is_correct": false },
+      { "option_text": "Sirve para afiliarte a los descuentos de los supermercados", "is_correct": false },
+      { "option_text": "Es el número de atención al cliente del banco", "is_correct": false },
+      { "option_text": "Indica el límite de crédito que tienes disponible", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Uso seguro de Tarjetas y Billeteras Digitales",
+    "question_text": "Recibes un correo supuestamente del BCP diciendo: 'Tu cuenta ha sido bloqueada, haz clic aquí para validarla'. ¿Qué haces?",
+    "explanation": "¡Exacto! Es un clásico caso de Phishing. Los bancos NUNCA te pedirán contraseñas o datos sensibles por un enlace de correo o SMS.",
+    "options": [
+      { "option_text": "Ignorarlo y borrarlo, los bancos nunca envían links para validar datos sensibles", "is_correct": true },
+      { "option_text": "Hacer clic rápido y poner tu clave para que no te bloqueen la cuenta", "is_correct": false },
+      { "option_text": "Reenviar el correo a todos tus contactos para avisarles", "is_correct": false },
+      { "option_text": "Responder al correo con insultos al estafador", "is_correct": false },
+      { "option_text": "Ingresar a la app desde el link porque parece oficial", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Uso seguro de Tarjetas y Billeteras Digitales",
+    "question_text": "Tienes una tarjeta de crédito y una de débito. Vas a comprar un menú de S/ 15. Financieramente, ¿qué deberías usar si no planeas pagar intereses?",
+    "explanation": "¡Exacto! La débito usa plata que ya es tuya. Usar crédito para consumo diario y no pagarlo en el ciclo (mes) te generará intereses altísimos por algo fugaz.",
+    "options": [
+      { "option_text": "Usar la tarjeta de débito o billetera digital, es dinero propio y no genera deuda", "is_correct": true },
+      { "option_text": "Usar crédito a 12 cuotas para pagar S/ 1 al mes por el menú", "is_correct": false },
+      { "option_text": "Sacar efectivo de la tarjeta de crédito en el cajero", "is_correct": false },
+      { "option_text": "Pedirle fiado al señor del restaurante", "is_correct": false },
+      { "option_text": "Pagar con crédito y hacer pago mínimo a fin de mes", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Intereses y cuotas",
+    "question_text": "Compras unas zapatillas de S/ 300 con tu tarjeta de crédito a 6 cuotas. Al final terminas pagando S/ 450. ¿Qué concepto explica esos S/ 150 adicionales?",
+    "explanation": "¡Exacto! Esos son los intereses. Es el costo que te cobra el banco por prestarte el dinero a lo largo del tiempo. A más cuotas, más interés pagas.",
+    "options": [
+      { "option_text": "Los intereses y comisiones generados por fraccionar el pago", "is_correct": true },
+      { "option_text": "El IGV que cobra la tienda por comprar calzado deportivo", "is_correct": false },
+      { "option_text": "El mantenimiento de tu cuenta de ahorros", "is_correct": false },
+      { "option_text": "Una penalidad por pagar a tiempo", "is_correct": false },
+      { "option_text": "El costo del delivery incluido en secreto", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Intereses y cuotas",
+    "question_text": "Llega tu estado de cuenta de la tarjeta. Tienes el 'Pago del Mes' (S/ 500) y el 'Pago Mínimo' (S/ 40). ¿Qué pasa si solo pagas el monto mínimo?",
+    "explanation": "¡Exacto! El pago mínimo solo cubre una parte pequeñísima de la deuda y muchos intereses. Si solo pagas eso, la deuda se vuelve larguísima e impagable (efecto bola de nieve).",
+    "options": [
+      { "option_text": "Generas altos intereses sobre el saldo restante y la deuda se alarga", "is_correct": true },
+      { "option_text": "El banco te felicita y te sube la línea de crédito", "is_correct": false },
+      { "option_text": "No pasa nada, es la forma normal y recomendada de pagar", "is_correct": false },
+      { "option_text": "La deuda se congela automáticamente", "is_correct": false },
+      { "option_text": "Te devuelven el efectivo al mes siguiente", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Intereses y cuotas",
+    "question_text": "Ves una promoción de '3 cuotas sin intereses' para comprar repuestos para tu PC. ¿Esto significa que pagarás exactamente el precio de etiqueta dividido en tres?",
+    "explanation": "¡Exacto! En promociones reales sin intereses, pagas el precio de etiqueta fraccionado. Sin embargo, debes asegurarte de pagar puntual, sino te cobrarán penalidades.",
+    "options": [
+      { "option_text": "Sí, pagarás el precio dividido en 3, siempre que pagues puntual tus recibos", "is_correct": true },
+      { "option_text": "No, siempre te cobran un 10% extra por usar plástico", "is_correct": false },
+      { "option_text": "Sí, pero el banco te bloqueará la tarjeta después", "is_correct": false },
+      { "option_text": "No, 'sin intereses' es solo una metáfora de marketing", "is_correct": false },
+      { "option_text": "Depende de si tienes saldo en tu cuenta de ahorros", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Intereses y cuotas",
+    "question_text": "Al solicitar una tarjeta de crédito, ves un porcentaje llamado TEA. ¿Qué significa esta sigla?",
+    "explanation": "¡Exacto! TEA significa Tasa Efectiva Anual. Es el porcentaje principal que calcula cuánto interés te cobrarán en un año por el dinero financiado.",
+    "options": [
+      { "option_text": "Tasa Efectiva Anual", "is_correct": true },
+      { "option_text": "Tasa Extra de Ahorro", "is_correct": false },
+      { "option_text": "Total Estimado de Aportes", "is_correct": false },
+      { "option_text": "Transferencia Electrónica Automática", "is_correct": false },
+      { "option_text": "Tiempo Esperado de Amortización", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Intereses y cuotas",
+    "question_text": "¿Cuál es la diferencia crítica entre la TEA y la TCEA al evaluar un crédito?",
+    "explanation": "¡Exacto! La TCEA (Tasa de Costo Efectivo Anual) incluye la TEA más todas las comisiones, portes y seguros. Es el costo REAL y total de tu crédito. Siempre fíjate en la TCEA.",
+    "options": [
+      { "option_text": "La TCEA es el costo total real, porque incluye la TEA más seguros y comisiones", "is_correct": true },
+      { "option_text": "La TEA es para dólares y la TCEA es para soles", "is_correct": false },
+      { "option_text": "Son exactamente lo mismo, solo es un cambio de nombre del banco", "is_correct": false },
+      { "option_text": "La TCEA solo aplica para préstamos hipotecarios millonarios", "is_correct": false },
+      { "option_text": "La TEA es el seguro de desgravamen y la TCEA es la cuota fija", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Intereses y cuotas",
+    "question_text": "Te quedaste sin efectivo en una fiesta y decides sacar dinero del cajero automático usando tu tarjeta de CRÉDITO (Adelanto de efectivo). ¿Es buena idea?",
+    "explanation": "¡Exacto! Es una de las peores decisiones financieras. El interés por adelanto de efectivo es extremadamente alto y se cobra desde el primer día.",
+    "options": [
+      { "option_text": "No, es pésima idea porque la tasa de interés por adelanto de efectivo es altísima", "is_correct": true },
+      { "option_text": "Sí, funciona igual que una tarjeta de débito sin cobros extra", "is_correct": false },
+      { "option_text": "Sí, porque te da puntos o millas para viajes", "is_correct": false },
+      { "option_text": "Solo si retiras montos muy grandes de más de 1000 soles", "is_correct": false },
+      { "option_text": "Sí, el banco premia a los que sacan efectivo a altas horas", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Historial Crediticio",
+    "question_text": "Escuchas la frase 'Estás en Infocorp'. ¿Qué es realmente Infocorp o las centrales de riesgo en el Perú?",
+    "explanation": "¡Exacto! Son bases de datos que registran el comportamiento de pago de TODAS las personas con deudas. Estar ahí es normal, lo malo es tener un reporte negativo por impagos.",
+    "options": [
+      { "option_text": "Un registro donde figuran todos los que tienen créditos, mostrando si pagan bien o mal", "is_correct": true },
+      { "option_text": "Una lista negra del gobierno solo para delincuentes", "is_correct": false },
+      { "option_text": "Un banco internacional que da préstamos a universitarios", "is_correct": false },
+      { "option_text": "El sistema del Metropolitano para recargar tarjetas", "is_correct": false },
+      { "option_text": "Una app para bloquear llamadas de spam bancario", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Historial Crediticio",
+    "question_text": "Como estudiante de 20 años sin trabajo formal, ¿cómo puedes empezar a construir un historial crediticio positivo?",
+    "explanation": "¡Exacto! Poner un plan de celular a tu nombre y pagarlo puntual todos los meses es una excelente forma de que el sistema te vea como alguien responsable.",
+    "options": [
+      { "option_text": "Sacando un plan postpago de celular a tu nombre y pagando puntual cada mes", "is_correct": true },
+      { "option_text": "Pidiendo un préstamo de 50 mil soles para un auto", "is_correct": false },
+      { "option_text": "Apostando en casinos y mostrando que tienes ingresos", "is_correct": false },
+      { "option_text": "Dejando que tus padres paguen todas tus cuentas a su nombre", "is_correct": false },
+      { "option_text": "Descargando todas las apps de los bancos sin usarlas", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Historial Crediticio",
+    "question_text": "¿Cuál es la principal consecuencia de estar reportado negativamente (mala calificación) en la central de riesgo (SBS/Infocorp)?",
+    "explanation": "¡Exacto! Una mala calificación te cierra las puertas del sistema financiero: no te darán tarjetas, préstamos personales, ni créditos vehiculares o hipotecarios a futuro.",
+    "options": [
+      { "option_text": "Te denegarán futuros préstamos, tarjetas o créditos vehiculares e hipotecarios", "is_correct": true },
+      { "option_text": "Ir a la cárcel de manera inmediata", "is_correct": false },
+      { "option_text": "Que te bloqueen la cuenta de Yape o Plin para recibir dinero", "is_correct": false },
+      { "option_text": "Perder tu carné universitario", "is_correct": false },
+      { "option_text": "Que te suban el pasaje en el transporte público", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Historial Crediticio",
+    "question_text": "Tenías una deuda vencida hace un año. Hoy conseguiste plata y por fin la cancelaste. ¿Al día siguiente tu historial en Infocorp estará limpio e impecable?",
+    "explanation": "¡Exacto! No. Cancelar la deuda regulariza tu estado, pero el 'manchón' o historial de atraso permanece visible por un par de años (hasta 5 años en algunos casos) como antecedente.",
+    "options": [
+      { "option_text": "No, el registro del atraso se mantendrá visible en el historial por algunos años", "is_correct": true },
+      { "option_text": "Sí, el sistema se borra automáticamente en 24 horas", "is_correct": false },
+      { "option_text": "Sí, siempre y cuando le des propina al cajero del banco", "is_correct": false },
+      { "option_text": "No, la deuda nunca desaparece y la heredarán tus nietos", "is_correct": false },
+      { "option_text": "Depende de si publicas una disculpa en redes sociales", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Historial Crediticio",
+    "question_text": "¿Cómo puedes revisar tu propio reporte de deudas de manera gratuita y oficial en Perú?",
+    "explanation": "¡Exacto! La SBS (Superintendencia de Banca, Seguros y AFP) tiene un portal y un app donde los ciudadanos pueden revisar su reporte de deudas gratis.",
+    "options": [
+      { "option_text": "Ingresando a la plataforma web o app de Reporte de Deudas de la SBS", "is_correct": true },
+      { "option_text": "Preguntándole a cualquier cajero de supermercado", "is_correct": false },
+      { "option_text": "Llamando a la policía o comisaría más cercana", "is_correct": false },
+      { "option_text": "Buscando tu nombre en Google y Wikipedia", "is_correct": false },
+      { "option_text": "No se puede, es información clasificada solo para bancos", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Historial Crediticio",
+    "question_text": "Un amigo te pide que saques un préstamo a TU NOMBRE porque él está 'mal en Infocorp' y promete pagarte. ¿Qué riesgo asumes?",
+    "explanation": "¡Exacto! Eres 100% responsable ante el banco. Si tu amigo no paga, tu historial crediticio se destruirá, te cobrarán a ti y manchará tu futuro financiero.",
+    "options": [
+      { "option_text": "Asumes toda la responsabilidad legal y financiera; si él no paga, tu historial se arruina", "is_correct": true },
+      { "option_text": "Ningún riesgo, puedes decirle al banco que la plata era para tu amigo", "is_correct": false },
+      { "option_text": "Mejoras tu crédito rápido por mover fuertes cantidades de dinero", "is_correct": false },
+      { "option_text": "El banco perseguirá a tu amigo usando detectives privados", "is_correct": false },
+      { "option_text": "Ganas puntos en Infocorp por ser solidario", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Préstamos y Créditos Personales",
+    "question_text": "Estás endeudado con dos tarjetas de crédito y decides pedir un préstamo personal en otro banco para pagar esas tarjetas. ¿Cómo se llama esta estrategia?",
+    "explanation": "¡Exacto! Esto se llama consolidación o compra de deuda. Te permite agrupar tus deudas en una sola entidad, idealmente pagando menos intereses mensuales.",
+    "options": [
+      { "option_text": "Consolidación o compra de deuda", "is_correct": true },
+      { "option_text": "Bicicleteo o carrusel de deudas", "is_correct": false },
+      { "option_text": "Lavado de activos financieros", "is_correct": false },
+      { "option_text": "Fondo mutuo de contingencia", "is_correct": false },
+      { "option_text": "Insolvencia declarada", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Préstamos y Créditos Personales",
+    "question_text": "Ves en un poste en la calle un cartel que dice 'Préstamos al instante, sin aval, sin Infocorp, solo con tu DNI'. ¿Por qué es un peligro inmenso?",
+    "explanation": "¡Exacto! Suelen ser préstamos informales de prestamistas 'gota a gota'. Cobran tasas abusivas diarias y usan extorsión y violencia para cobrar.",
+    "options": [
+      { "option_text": "Es la modalidad informal 'gota a gota', ligada a extorsión, amenazas y tasas abusivas", "is_correct": true },
+      { "option_text": "Es una gran oportunidad del gobierno para apoyar jóvenes emprendedores", "is_correct": false },
+      { "option_text": "Es una ONG suiza haciendo obra social en Lima", "is_correct": false },
+      { "option_text": "No pasa nada, si no pagas solo te mandan un correo molesto", "is_correct": false },
+      { "option_text": "Es un servicio exclusivo de billeteras digitales oculto", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Préstamos y Créditos Personales",
+    "question_text": "Quieres un préstamo para llevar un curso especializado de data analytics. El banco te pide un 'Garante' o 'Aval'. ¿Qué significa esa figura?",
+    "explanation": "¡Exacto! Un garante es una persona (generalmente un familiar o alguien solvente) que firma el contrato comprometiéndose a pagar tu deuda si tú no lo haces.",
+    "options": [
+      { "option_text": "Una persona que se compromete legalmente a pagar tu deuda si tú dejas de hacerlo", "is_correct": true },
+      { "option_text": "Un abogado del banco que revisa que todo esté legal", "is_correct": false },
+      { "option_text": "El profesor del curso certificando que eres buen alumno", "is_correct": false },
+      { "option_text": "Un seguro de vida en caso te pase un accidente", "is_correct": false },
+      { "option_text": "Un pago por adelantado para asegurar el crédito", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Préstamos y Créditos Personales",
+    "question_text": "Vas a pedir un crédito personal. El Banco A te ofrece TEA 15% y TCEA 25%. El Banco B te ofrece TEA 18% y TCEA 22%. ¿Cuál te conviene elegir y por qué?",
+    "explanation": "¡Exacto! Te conviene el Banco B porque debes guiarte SIEMPRE por la TCEA, que es el costo total y final del préstamo incluyendo seguros y comisiones.",
+    "options": [
+      { "option_text": "El Banco B, porque tiene la TCEA más baja, que representa el costo total real a pagar", "is_correct": true },
+      { "option_text": "El Banco A, porque la TEA es la única tasa que importa en préstamos", "is_correct": false },
+      { "option_text": "Ninguno, es mejor pedirle al gota a gota", "is_correct": false },
+      { "option_text": "El Banco A, porque la diferencia entre TEA y TCEA indica buena rentabilidad", "is_correct": false },
+      { "option_text": "Da igual, al final todos los bancos te van a cobrar lo mismo por ley", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Préstamos y Créditos Personales",
+    "question_text": "Antes de firmar el contrato de un préstamo, notas que hay un 'Seguro de Desgravamen'. ¿Para qué sirve este seguro obligatorio?",
+    "explanation": "¡Exacto! El seguro de desgravamen cancela automáticamente la deuda en caso de fallecimiento o invalidez total del titular, protegiendo a sus herederos de heredar la deuda.",
+    "options": [
+      { "option_text": "Para cancelar la deuda automáticamente en caso fallezcas o tengas invalidez total", "is_correct": true },
+      { "option_text": "Para proteger el auto o casa que compraste de robos e incendios", "is_correct": false },
+      { "option_text": "Para que el banco no te cobre moras si te atrasas un mes", "is_correct": false },
+      { "option_text": "Es un ahorro forzoso que te devuelven al final del préstamo", "is_correct": false },
+      { "option_text": "Para pagarle el sueldo a los ejecutivos del banco", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Préstamos y Créditos Personales",
+    "question_text": "¿Cuál es un buen motivo justificable para que un joven universitario solicite un préstamo personal?",
+    "explanation": "¡Exacto! Financiar tu educación, como un ciclo universitario, diplomado o una laptop para la tesis, es una inversión en tu capital humano que te generará mejores ingresos a futuro.",
+    "options": [
+      { "option_text": "Financiar el pago de un semestre universitario o equipo indispensable para estudios", "is_correct": true },
+      { "option_text": "Ir de viaje a Cancún con la promo por fiestas patrias", "is_correct": false },
+      { "option_text": "Comprar ropa de diseñador y salir de fiesta VIP", "is_correct": false },
+      { "option_text": "Comprar una cuenta nivel máximo en League of Legends", "is_correct": false },
+      { "option_text": "Prestarle ese dinero a un amigo que está desesperado", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Compras Seguras por Internet",
+    "question_text": "Ves una súper oferta de audífonos en Facebook Marketplace y el vendedor exige el pago por transferencia antes de enviarlos. ¿Qué precaución debes tomar?",
+    "explanation": "¡Exacto! Exigir pago anticipado sin garantías en Marketplace es una bandera roja gigante de estafa. Lo mejor es usar plataformas seguras como Mercado Libre, o pagar contra entrega.",
+    "options": [
+      { "option_text": "Dudar y preferir plataformas formales con protección al comprador (Mercado Libre) o pagar contra entrega", "is_correct": true },
+      { "option_text": "Transferir rápido antes de que otra persona gane la oferta", "is_correct": false },
+      { "option_text": "Darle el número de tu tarjeta de crédito para que se cobre él mismo", "is_correct": false },
+      { "option_text": "Pedirle su DNI por foto, con eso basta para confiar al 100%", "is_correct": false },
+      { "option_text": "Pagarle con criptomonedas para que sea más moderno", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Compras Seguras por Internet",
+    "question_text": "Tu app bancaria tiene la opción de 'Tarjeta Virtual'. ¿Cuál es el principal beneficio de usarla al comprar en páginas web internacionales como Steam o Temu?",
+    "explanation": "¡Exacto! Las tarjetas virtuales generan un código de seguridad (CVV) dinámico que cambia en minutos. Así, si hackean la web, no podrán usar tu tarjeta después.",
+    "options": [
+      { "option_text": "Ofrece un CVV dinámico que cambia cada pocos minutos, protegiendo tus datos si hackean la tienda web", "is_correct": true },
+      { "option_text": "No te cobran IGV ni impuestos de importación en Aduanas", "is_correct": false },
+      { "option_text": "Te regala saldo infinito para comprar en aplicaciones de juegos", "is_correct": false },
+      { "option_text": "Aumenta automáticamente el nivel y gráficos de tus videojuegos de PC", "is_correct": false },
+      { "option_text": "Puedes endeudarte y luego borrar la app para no pagar", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Compras Seguras por Internet",
+    "question_text": "Vas a comprar pasajes en bus por internet usando la red Wi-Fi gratuita de Starbucks o del centro comercial. ¿Es seguro ingresar tu tarjeta ahí?",
+    "explanation": "¡Exacto! Las redes Wi-Fi públicas son inseguras y vulnerables a que ciberdelincuentes intercepten tus datos. Usa siempre tus datos móviles para compras.",
+    "options": [
+      { "option_text": "No, las redes públicas son fácilmente interceptadas por hackers. Es mejor usar datos móviles (4G/5G)", "is_correct": true },
+      { "option_text": "Sí, porque las redes de las cafeterías tienen seguridad militar anti-hackers", "is_correct": false },
+      { "option_text": "Sí, pero solo si compras cosas baratas de menos de S/ 50", "is_correct": false },
+      { "option_text": "No, el dueño de la cafetería te cobrará comisión", "is_correct": false },
+      { "option_text": "Sí, siempre y cuando borres el historial del navegador después", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Compras Seguras por Internet",
+    "question_text": "¿Qué indicador visual en el navegador web te confirma que los datos de tu tarjeta viajarán de forma encriptada y segura?",
+    "explanation": "¡Exacto! El candado de seguridad y el 'https://' (Hypertext Transfer Protocol Secure) indican que la conexión entre tu navegador y la tienda web está cifrada.",
+    "options": [
+      { "option_text": "El candado cerrado junto a la URL y que la dirección empiece con 'https://'", "is_correct": true },
+      { "option_text": "Un sello gigante que diga '100% Compra Segura' en la mitad de la página", "is_correct": false },
+      { "option_text": "Que la página tenga muchos colores y animaciones profesionales", "is_correct": false },
+      { "option_text": "Que te ofrezca un chat de WhatsApp para enviar la foto de tu tarjeta", "is_correct": false },
+      { "option_text": "Que la página termine en '.com.pe' obligatoriamente", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Compras Seguras por Internet",
+    "question_text": "No quieres usar tu tarjeta de débito en una página de ropa, pero te ofrecen pagar por 'PagoEfectivo'. ¿Cómo funciona este método?",
+    "explanation": "¡Exacto! Te generan un código numérico (CIP) y pagas desde la app de tu banco o en efectivo en un agente (Ej. Tambo), sin revelar jamás los números de tu tarjeta.",
+    "options": [
+      { "option_text": "Te da un código (CIP) para pagar desde tu app bancaria o agente sin ingresar los datos de tu tarjeta", "is_correct": true },
+      { "option_text": "El cartero te cobra en efectivo cuando llega el paquete a tu casa", "is_correct": false },
+      { "option_text": "Es una billetera cripto para comprar con Bitcoins", "is_correct": false },
+      { "option_text": "El banco te da un cheque que debes llevar a la tienda en físico", "is_correct": false },
+      { "option_text": "Te descuentan directamente de tu sueldo mensual", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Compras Seguras por Internet",
+    "question_text": "Realizaste una compra online, te descontaron el dinero, pero la tienda dice 'Transacción Fallida'. ¿Qué debes hacer?",
+    "explanation": "¡Exacto! Debes guardar capturas de pantalla, el código de pedido (si lo hay) y comunicarte tanto con la tienda como con tu banco para iniciar un reclamo formal de extorno.",
+    "options": [
+      { "option_text": "Guardar capturas del error, revisar el estado de cuenta y contactar al banco y a la tienda para el extorno", "is_correct": true },
+      { "option_text": "Volver a intentar comprar unas 5 veces seguidas hasta que funcione", "is_correct": false },
+      { "option_text": "Dar el dinero por perdido y cerrar tu cuenta de banco", "is_correct": false },
+      { "option_text": "Insultar al community manager en las redes sociales de la tienda", "is_correct": false },
+      { "option_text": "Llamar a Defensa Civil de inmediato", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Fraudes y Phishing Financiero",
+    "question_text": "Recibes una llamada donde te dicen: 'Hola, te llamo de Interbank, hemos detectado un consumo extraño. Dame tu clave dinámica (Token) para cancelarlo'. ¿Qué haces?",
+    "explanation": "¡Exacto! Es un fraude llamado Vishing. Los bancos NUNCA te llamarán para pedirte tu clave dinámica, Token, SMS o CVV. Solo quieren vaciar tu cuenta.",
+    "options": [
+      { "option_text": "Cuelgas de inmediato. Los bancos nunca te piden tu clave, Token o SMS por llamada telefónica", "is_correct": true },
+      { "option_text": "Le das el número por si acaso, mejor prevenir que te cobren algo raro", "is_correct": false },
+      { "option_text": "Le dictas la clave pero despacio para que la anote bien", "is_correct": false },
+      { "option_text": "Aceptas la ayuda y le pasas foto de tu DNI por WhatsApp", "is_correct": false },
+      { "option_text": "Le das la contraseña de tu Facebook para que verifique tu identidad", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Fraudes y Phishing Financiero",
+    "question_text": "Te llega un mensaje de texto (SMS) que dice: 'Gano un iPhone 15 en Ripley, reclámalo hoy haciendo click en este enlace: bit.ly/premio'. Esto es un ejemplo de...",
+    "explanation": "¡Exacto! Esto se conoce como Smishing (Phishing por SMS). Los enlaces acortados buscan que entres a webs falsas para robarte datos o infectar tu teléfono con malware.",
+    "options": [
+      { "option_text": "Smishing, una técnica fraudulenta para robar información o instalar virus mediante un enlace malicioso", "is_correct": true },
+      { "option_text": "Una promoción real de temporada de Ciber Days", "is_correct": false },
+      { "option_text": "Marketing digital autorizado por Indecopi", "is_correct": false },
+      { "option_text": "Una campaña de fidelización para clientes VIP", "is_correct": false },
+      { "option_text": "Un simple error del sistema de telefonía", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Fraudes y Phishing Financiero",
+    "question_text": "Para evitar que te vacíen la cuenta si pierdes tu tarjeta física, ¿qué configuración debes mantener apagada en tu app bancaria la mayor parte del tiempo?",
+    "explanation": "¡Exacto! Mantener las 'Compras por internet' y 'Compras en el extranjero' apagadas desde la app y encenderlas solo cuando vas a usarlas es la mejor barrera contra el fraude.",
+    "options": [
+      { "option_text": "Apagar las opciones de 'Compras por internet' y 'Compras en el exterior' cuando no las usas", "is_correct": true },
+      { "option_text": "Apagar el Wi-Fi del celular constantemente", "is_correct": false },
+      { "option_text": "Desinstalar la aplicación del banco todos los días", "is_correct": false },
+      { "option_text": "Desactivar la recepción de notificaciones de la app", "is_correct": false },
+      { "option_text": "Configurar la pantalla del celular en blanco y negro", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Fraudes y Phishing Financiero",
+    "question_text": "Revisas tu estado de cuenta y ves un consumo de 10 dólares en 'Epic Games' que tú no realizaste. ¿Cuál es el paso correcto a seguir?",
+    "explanation": "¡Exacto! Debes bloquear tu tarjeta al instante por la app para evitar más cobros y llamar al banco para ingresar un reclamo por consumo no reconocido (extorno).",
+    "options": [
+      { "option_text": "Bloquear la tarjeta desde la app inmediatamente y presentar un reclamo por cargo no reconocido al banco", "is_correct": true },
+      { "option_text": "Dejarlo pasar porque 10 dólares es poquito dinero", "is_correct": false },
+      { "option_text": "Esperar a fin de mes a ver si te devuelven la plata mágicamente", "is_correct": false },
+      { "option_text": "Llamar a Epic Games para pedirles que te regalen el juego", "is_correct": false },
+      { "option_text": "Sacar una segunda tarjeta en el mismo banco sin avisar del robo", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Fraudes y Phishing Financiero",
+    "question_text": "¿Por qué NUNCA debes prestar tu cuenta bancaria para recibir dinero de personas que 'no tienen tarjeta' a cambio de una pequeña comisión?",
+    "explanation": "¡Exacto! Prestar tu cuenta para recibir y transferir dinero de dudosa procedencia puede involucrarte penalmente en el delito de lavado de activos o estafas ajenas.",
+    "options": [
+      { "option_text": "Porque podrías estar siendo usado como 'mula bancaria' e involucrarte en lavado de activos o estafas", "is_correct": true },
+      { "option_text": "Porque el banco te quitará tu tarjeta por exceso de movimientos", "is_correct": false },
+      { "option_text": "Porque la comisión suele ser muy pequeña para que valga la pena", "is_correct": false },
+      { "option_text": "Porque la SUNAT te obligará a pagar el 50% de impuestos", "is_correct": false },
+      { "option_text": "Es una excelente idea para generar ingresos extra como estudiante", "is_correct": false }
+    ]
+  },
+  {
+    "topic_name": "Medios de Pago y Crédito",
+    "topic_category": "Bancarización",
+    "dkt_skill_id": 2,
+    "lesson_title": "Fraudes y Phishing Financiero",
+    "question_text": "¿Cuál es un hábito de seguridad muy recomendado para detectar cobros fraudulentos al instante en tus tarjetas de crédito y débito?",
+    "explanation": "¡Exacto! Activar las alertas de consumo por SMS o notificación push en tu celular te permite enterarte en tiempo real (segundos) cuando se pasa tu tarjeta, ayudándote a bloquearla rápido ante fraudes.",
+    "options": [
+      { "option_text": "Activar las notificaciones o alertas de consumo por app o correo para cada transacción", "is_correct": true },
+      { "option_text": "Revisar el estado de cuenta impreso una vez al año", "is_correct": false },
+      { "option_text": "Romper todos los vouchers (recibos físicos) apenas te los entregan", "is_correct": false },
+      { "option_text": "Ponerle una calcomanía a la tarjeta para que no la clonen físicamente", "is_correct": false },
+      { "option_text": "Memorizarte todos los 16 dígitos y el CVV para no llevarla contigo", "is_correct": false }
+    ]
+  }
+]
