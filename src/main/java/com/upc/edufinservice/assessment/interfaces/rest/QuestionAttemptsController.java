@@ -2,6 +2,8 @@ package com.upc.edufinservice.assessment.interfaces.rest;
 
 import java.util.UUID;
 
+import com.upc.edufinservice.iam.domain.model.queries.GetUserByUsernameQuery;
+import com.upc.edufinservice.iam.domain.services.UserQueryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,26 +28,33 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class QuestionAttemptsController {
 
     private final AssessmentCommandService assessmentCommandService;
-
-    public QuestionAttemptsController(AssessmentCommandService assessmentCommandService) {
+    private final UserQueryService userQueryService;
+    public QuestionAttemptsController(AssessmentCommandService assessmentCommandService,
+                                      UserQueryService userQueryService) {
         this.assessmentCommandService = assessmentCommandService;
+        this.userQueryService = userQueryService;
     }
 
     @PostMapping
     public ResponseEntity<QuestionAttemptResource> submitAttempt(@RequestBody SubmitQuestionAttemptResource resource) {
 
-        // 1. EL BLINDAJE JWT: Extraemos el ID del alumno
+        // 1. EL BLINDAJE JWT: Extraemos el username (email) del token
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
             throw new MissingJwtException();
         }
 
-        UUID safeUserId;
-        try {
-            safeUserId = UUID.fromString(authentication.getName());
-        } catch (IllegalArgumentException ex) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token inválido o usuario no autenticado.");
+        String currentUsername = authentication.getName();
+
+        // 1.1 Buscamos al usuario en la BD usando ese username (Asegúrate de inyectar userQueryService en el constructor)
+        var userOpt = userQueryService.handle(new GetUserByUsernameQuery(currentUsername));
+
+        if (userOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "El usuario asociado a este token no existe.");
         }
+
+        // 1.2 Ahora sí tenemos el UUID seguro y real
+        UUID safeUserId = userOpt.get().getId();
 
         // 2. Traducimos el JSON entrante a un Comando pasándole el ID seguro
         var command = SubmitQuestionAttemptCommandFromResourceAssembler.toCommandFromResource(resource, safeUserId);
