@@ -9,6 +9,7 @@ public class UserResourceFromAggregateAssembler {
                 aggregate.getUsername(),
                 aggregate.getEmail(),
                 aggregate.getFullName(),
-                aggregate.getAvatarUrl());
+                aggregate.getAvatarUrl(),
+                aggregate.getGender());
     }
 }
