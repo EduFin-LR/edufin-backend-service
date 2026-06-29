@@ -87,7 +87,7 @@ public class GamificationProfileController {
         var resources = topPlayers.stream().map(profile -> {
 
             String nombreMostrar = "Estudiante Anónimo"; // Valor por defecto por si algo falla
-
+            String gender = "NOT_SPECIFIED";
             // Consultamos al IAM por el UUID del jugador
             var userOpt = _userQueryService.handle(new GetUserByIdQuery(profile.getUserId()));
 
@@ -99,6 +99,11 @@ public class GamificationProfileController {
                 } else if (user.getUsername() != null && !user.getUsername().isBlank()) {
                     nombreMostrar = user.getUsername();
                 }
+
+                //NUEVO Extraemos el género directamente desde el agregado de IAM
+                if (user.getGender() != null && !user.getGender().isBlank()) {
+                    gender = user.getGender();
+                }
             }
 
             // Construimos la respuesta enriquecida
@@ -107,7 +112,8 @@ public class GamificationProfileController {
                     nombreMostrar,
                     profile.getTotalPoints(),
                     profile.getCurrentLevel(),
-                    profile.getStreakDays()
+                    profile.getStreakDays(),
+                    gender
             );
 
         }).collect(Collectors.toList());
