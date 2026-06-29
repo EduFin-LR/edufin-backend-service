@@ -7,5 +7,6 @@ public record LessonResource(
         String title,
         String content,
         String videoUrl,
-        String status // Nuevo: "LOCKED", "UNLOCKED", "IN_PROGRESS", "COMPLETED"
+        Integer lessonOrder, //NUEVO: Para que React sepa el orden oficial de la lección
+        String status // "LOCKED", "UNLOCKED", "IN_PROGRESS", "COMPLETED"
 ) {}

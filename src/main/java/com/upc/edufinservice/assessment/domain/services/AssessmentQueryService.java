@@ -6,6 +6,7 @@ import java.util.UUID;
 public interface AssessmentQueryService {
     int getCompletedLessonsCount(UUID userId, List<UUID> lessonIds);
 
-    // En AssessmentQueryService.java
     String getLessonStatus(UUID userId, UUID lessonId, boolean isFirstLessonOfApp);
+
+    boolean hasCompletedDiagnostic(UUID userId);
 }

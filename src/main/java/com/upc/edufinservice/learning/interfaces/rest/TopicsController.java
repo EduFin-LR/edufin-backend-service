@@ -8,7 +8,10 @@ import java.util.stream.Collectors;
 import com.upc.edufinservice.assessment.domain.services.AssessmentQueryService;
 import com.upc.edufinservice.iam.domain.model.queries.GetUserByUsernameQuery;
 import com.upc.edufinservice.iam.domain.services.UserQueryService;
+import com.upc.edufinservice.learning.domain.model.ValueObjetcts.ProgressStatus;
 import com.upc.edufinservice.learning.domain.model.aggregates.Lesson;
+import com.upc.edufinservice.learning.domain.model.queries.GetTopicByIdQuery;
+import com.upc.edufinservice.learning.interfaces.rest.resources.TopicLessonsResponse;
 import com.upc.edufinservice.shared.infrastructure.exceptions.MissingJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,11 +69,32 @@ public class TopicsController {
             int completedLessons = assessmentQueryService.getCompletedLessonsCount(safeUserId, lessonIds);
 
             // 2. Determinamos el estado macro del Tópico (Alcancía Visual)
-            String topicStatus = "PENDING";
-            if (completedLessons > 0 && completedLessons < totalLessons) {
-                topicStatus = "IN_PROGRESS";
-            } else if (totalLessons > 0 && completedLessons == totalLessons) {
-                topicStatus = "COMPLETED";
+            // Por defecto, asumimos que toda unidad nace bloqueada (LOCKED)
+            String topicStatus = ProgressStatus.LOCKED.name();
+
+            // Regla de secuencialidad macro: Está disponible si es el primerísimo tema de la app,
+            // o si el tema anterior en el ciclo ya se encuentra en estado COMPLETED
+            boolean isTopicAvailable = (i == 0) || ProgressStatus.COMPLETED.name().equals(enrichedTopics.get(i - 1).status());
+
+            if (isTopicAvailable) {
+                if (totalLessons > 0 && completedLessons == totalLessons) {
+                    topicStatus = ProgressStatus.COMPLETED.name();
+                } else if (completedLessons > 0) {
+                    topicStatus = ProgressStatus.IN_PROGRESS.name();
+                } else {
+                    // Si completedLessons == 0: Evaluamos de forma cruzada si ya inició la primera lección
+                    boolean hasStartedFirstLesson = false;
+                    if (!lessons.isEmpty()) {
+                        boolean isFirstLessonOfApp = (i == 0);
+                        String firstLessonStatus = assessmentQueryService.getLessonStatus(safeUserId, lessons.get(0).getId(), isFirstLessonOfApp);
+
+                        if (ProgressStatus.IN_PROGRESS.name().equals(firstLessonStatus)) {
+                            hasStartedFirstLesson = true;
+                        }
+                    }
+                    // Si ya le dio click a "start", la alcancía se marca IN_PROGRESS; de lo contrario, queda UNLOCKED (abierta a jugar)
+                    topicStatus = hasStartedFirstLesson ? ProgressStatus.IN_PROGRESS.name() : ProgressStatus.UNLOCKED.name();
+                }
             }
 
             // Si es el segundo tema en adelante y el anterior no está completo, se renderiza bloqueado en el mapa
@@ -88,33 +112,44 @@ public class TopicsController {
     }
 
     @GetMapping("/{topicId}/lessons")
-    public ResponseEntity<List<LessonResource>> getLessonsByTopicId(@PathVariable UUID topicId) {
+    public ResponseEntity<TopicLessonsResponse> getLessonsByTopicId(@PathVariable UUID topicId) {
         UUID safeUserId = getSafeUserIdFromToken();
-        var lessons = queryService.handle(new GetLessonsByTopicIdQuery(topicId));
+        // 1. Buscamos el Tema Padre para extraer su título y categoría
+        var topicOpt = queryService.handle(new GetTopicByIdQuery(topicId));
+        if (topicOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El tema solicitado no existe.");
+        }
+        var topic = topicOpt.get();
 
+        // 2. Traemos las lecciones asociadas a este tema
+        var lessons = queryService.handle(new GetLessonsByTopicIdQuery(topicId));
         if (lessons.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay lecciones para el tema solicitado.");
         }
 
-        // Jalamos la lista general de todos los temas ordenados para saber cuál es el primerísimo nivel del juego
         var allTopics = queryService.handle(new GetAllTopicsQuery());
         UUID firstTopicId = allTopics.isEmpty() ? null : allTopics.get(0).getId();
 
         List<LessonResource> enrichedLessons = new ArrayList<>();
 
         for (var l : lessons) {
-            // Regla de control: Es la primerísima lección si pertenece al Topic 1 y su lessonOrder es 1
             boolean isFirstLessonOfApp = topicId.equals(firstTopicId) && l.getLessonOrder() == 1;
-
-            // Le consultamos al motor analítico el estado real de este nivel para el alumno
             String status = assessmentQueryService.getLessonStatus(safeUserId, l.getId(), isFirstLessonOfApp);
 
             enrichedLessons.add(new LessonResource(
-                    l.getId(), l.getTitle(), l.getContent(), l.getVideoUrl(), status
+                    l.getId(), l.getTitle(), l.getContent(), l.getVideoUrl(), l.getLessonOrder(), status
             ));
         }
 
-        return ResponseEntity.ok(enrichedLessons);
+        // 3. 🚀 Construimos la respuesta unificada Padre-Hijo para React
+        var response = new TopicLessonsResponse(
+                topic.getId(),
+                topic.getName(),      // Aquí viaja el "AHORRO BÁSICO"
+                topic.getCategory(),
+                enrichedLessons
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     // Método privado y seguro para extraer la identidad del estudiante desde el JWT

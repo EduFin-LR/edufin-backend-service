@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.upc.edufinservice.assessment.domain.services.AssessmentQueryService;
 import com.upc.edufinservice.gamification.domain.model.queries.GetAllBadgesQuery;
 import com.upc.edufinservice.gamification.interfaces.rest.resources.BadgeProgressResource;
 import com.upc.edufinservice.gamification.interfaces.rest.resources.LeaderboardProfileResource;
@@ -34,13 +35,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Gamification Profiles", description = "Endpoints para consultar niveles y sumar puntos")
 public class GamificationProfileController {
 
-    private final GamificationQueryService queryService;
+    private final GamificationQueryService _queryService;
     private final UserQueryService _userQueryService;
+    private final AssessmentQueryService _assessmentQueryService;
 
     public GamificationProfileController(GamificationQueryService queryService,
-                                         UserQueryService userQueryService) {
-        this.queryService = queryService;
+                                         UserQueryService userQueryService,
+                                         AssessmentQueryService assessmentQueryService) {
+        _queryService = queryService;
         _userQueryService = userQueryService;
+        _assessmentQueryService = assessmentQueryService;
     }
 
     //contextual al usuario logueado
@@ -61,22 +65,23 @@ public class GamificationProfileController {
 
         UUID safeUserId = userOpt.get().getId();
 
+        boolean hasCompletedDiagnostic = _assessmentQueryService.hasCompletedDiagnostic(safeUserId);
         // 3. Ejecutamos la consulta de gamificación con el ID seguro
         var query = new GetGamificationProfileByUserIdQuery(safeUserId);
-        var profile = queryService.handle(query);
+        var profile = _queryService.handle(query);
 
         // Si es su primer día y no tiene perfil, le devolvemos los datos iniciales
         if (profile.isEmpty()) {
-            return ResponseEntity.ok(new GamificationProfileResource(UUID.randomUUID(), safeUserId, 0, 1, 1));
+            return ResponseEntity.ok(new GamificationProfileResource(UUID.randomUUID(), safeUserId, 0, 1, 1, hasCompletedDiagnostic));
         }
 
-        return ResponseEntity.ok(ProfileResourceFromAggregateAssembler.toResourceFromAggregate(profile.get()));
+        return ResponseEntity.ok(ProfileResourceFromAggregateAssembler.toResourceFromAggregate(profile.get(), hasCompletedDiagnostic));
     }
 
     @GetMapping("/leaderboard")
     public ResponseEntity<List<LeaderboardProfileResource>> getLeaderboard() {
         // 1. Traemos el Top 10 de la base de datos de Gamificación
-        var topPlayers = queryService.handle(new GetLeaderboardQuery(10));
+        var topPlayers = _queryService.handle(new GetLeaderboardQuery(10));
 
         // 2. Cruzamos los datos con el módulo IAM para obtener los nombres
         var resources = topPlayers.stream().map(profile -> {
@@ -127,10 +132,10 @@ public class GamificationProfileController {
         UUID safeUserId = userOpt.get().getId();
 
         // 2. Traemos TODAS las medallas que existen en el juego
-        var allBadges = queryService.handle(new GetAllBadgesQuery()); // Asegúrate de tener este Query creado
+        var allBadges = _queryService.handle(new GetAllBadgesQuery()); // Asegúrate de tener este Query creado
 
         // 3. Traemos solo los logros que ESTE usuario ha ganado
-        var earnedAchievements = queryService.handle(new GetUserAchievementsByUserIdQuery(safeUserId));
+        var earnedAchievements = _queryService.handle(new GetUserAchievementsByUserIdQuery(safeUserId));
 
         // 4. Cruzamos los datos: Creamos el progreso final
         var resources = allBadges.stream().map(badge -> {

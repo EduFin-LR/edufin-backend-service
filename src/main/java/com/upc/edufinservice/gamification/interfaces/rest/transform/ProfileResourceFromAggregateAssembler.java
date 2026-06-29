@@ -4,13 +4,14 @@ import com.upc.edufinservice.gamification.domain.model.aggregates.GamificationPr
 import com.upc.edufinservice.gamification.interfaces.rest.resources.GamificationProfileResource;
 
 public class ProfileResourceFromAggregateAssembler {
-    public static GamificationProfileResource toResourceFromAggregate(GamificationProfile profile) {
+    public static GamificationProfileResource toResourceFromAggregate(GamificationProfile profile, boolean diagnosticTest) {
         return new GamificationProfileResource(
                 profile.getId(),
                 profile.getUserId(),
                 profile.getTotalPoints(),
                 profile.getCurrentLevel(),
-                profile.getStreakDays()
+                profile.getStreakDays(),
+                diagnosticTest
         );
     }
 }
