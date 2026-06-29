@@ -21,6 +21,9 @@ public class Topic {
     @Column(nullable = false, length = 100)
     private String name;
 
+    @Column(name = "topic_order", nullable = false)
+    private Integer topicOrder;
+
     @Column(length = 50)
     private String category;
 
