@@ -106,6 +106,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
+        configuration.setAllowedOriginPatterns(List.of("*"));
         // 1. Dominios permitidos (Aquí pones el puerto donde correrá tu React)
         // Puedes agregar más si luego lo subes a la nube (ej. "https://mi-tesis.com")
         configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
