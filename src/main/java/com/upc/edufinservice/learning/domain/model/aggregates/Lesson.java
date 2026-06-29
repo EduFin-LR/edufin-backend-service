@@ -24,6 +24,9 @@ public class Lesson {
     @JoinColumn(name = "topic_id", nullable = false)
     private Topic topic;
 
+    @Column(name="lesson_order", nullable = false)
+    private Integer lessonOrder;
+
     @Column(nullable = false, length = 200)
     private String title;
 
@@ -33,8 +36,9 @@ public class Lesson {
     @Column(name = "video_url", columnDefinition = "text")
     private String videoUrl;
 
-    public Lesson(Topic topic, String title, String content, String videoUrl) {
+    public Lesson(Topic topic, Integer lessonOrder, String title, String content, String videoUrl) {
         this.topic = topic;
+        this.lessonOrder = lessonOrder;
         this.title = title;
         this.content = content;
         this.videoUrl = videoUrl;

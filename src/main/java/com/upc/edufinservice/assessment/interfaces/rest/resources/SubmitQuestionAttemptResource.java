@@ -5,5 +5,6 @@ import java.util.UUID;
 public record SubmitQuestionAttemptResource(
         UUID questionId,
         UUID selectedOptionId,
-        Float timeTakenSec
+        Float timeTakenSec,
+        String selectedMatchCategory
 ) {}

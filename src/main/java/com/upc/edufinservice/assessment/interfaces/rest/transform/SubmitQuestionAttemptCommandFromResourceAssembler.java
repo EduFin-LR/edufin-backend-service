@@ -15,6 +15,7 @@ public class SubmitQuestionAttemptCommandFromResourceAssembler {
                 safeUserId,
                 resource.questionId(),
                 resource.selectedOptionId(),
+                resource.selectedMatchCategory(), // ¡Inyectado para Drag & Drop!
                 resource.timeTakenSec()
         );
     }

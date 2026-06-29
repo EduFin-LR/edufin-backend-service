@@ -5,7 +5,8 @@ import java.util.UUID;
 public record SubmitQuestionAttemptCommand(
         UUID userId,
         UUID questionId,
-        UUID selectedOptionId,
+        UUID selectedOptionId,        // Puede ser null si la lógica frontend solo envía el match textual
+        String selectedMatchCategory, // Nuevo: Recibe la caja destino ("Ingreso", "Gasto Fijo", etc.)
         Float timeTakenSec
 ) {
     public SubmitQuestionAttemptCommand {

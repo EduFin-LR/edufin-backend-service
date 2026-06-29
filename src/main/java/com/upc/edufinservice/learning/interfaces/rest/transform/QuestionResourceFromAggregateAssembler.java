@@ -11,13 +11,22 @@ import java.util.stream.Collectors;
 public class QuestionResourceFromAggregateAssembler {
     public static QuestionResource toResourceFromAggregate(Question question, List<QuestionOption> options) {
         var optionResources = options.stream()
-                .map(opt -> new QuestionOptionResource(opt.getId(), opt.getOptionText(), opt.getIsCorrect()))
+                .map(opt -> new QuestionOptionResource(
+                        opt.getId(),
+                        opt.getOptionText(),
+                        opt.getIsCorrect(),
+                        opt.getMatchCategory() // Mapeamos la categoría
+                ))
                 .collect(Collectors.toList());
 
         return new QuestionResource(
                 question.getId(),
                 question.getQuestionText(),
                 question.getExplanation(),
+                question.getQuestionType(),    // Mapeamos el tipo
+                question.getHint(),            // Mapeamos la pista
+                question.getSuccessMessage(),  // Mapeamos mensaje éxito
+                question.getErrorMessage(),    // Mapeamos mensaje error
                 optionResources
         );
     }

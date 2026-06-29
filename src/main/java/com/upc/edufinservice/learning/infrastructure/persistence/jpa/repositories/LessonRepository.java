@@ -21,4 +21,8 @@ public interface LessonRepository extends JpaRepository<Lesson, UUID> {
     @Query("SELECT COUNT(l) FROM Lesson l WHERE l.topic.id = :topicId")
     Integer countByTopicId(@Param("topicId") UUID topicId);
 
+    // Devuelve las lecciones ordenadas
+    List<Lesson> findByTopic_IdOrderByLessonOrderAsc(UUID topicId);
+
+    Optional<Lesson> findByTopic_IdAndLessonOrder(UUID topicId, Integer lessonOrder);
 }

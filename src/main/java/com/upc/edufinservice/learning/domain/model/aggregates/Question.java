@@ -23,15 +23,32 @@ public class Question {
     @JoinColumn(name = "lesson_id", nullable = false)
     private Lesson lesson;
 
+    @Column(name="question_type", nullable = false)
+    private String questionType;
+
+    @Column(name="hint", columnDefinition = "TEXT")
+    private String hint;
+
+    @Column(name="success_message", columnDefinition = "TEXT")
+    private String successMessage;
+
+    @Column(name = "error_message", columnDefinition = "TEXT")
+    private String errorMessage;
+
     @Column(name = "question_text", nullable = false, columnDefinition = "text")
     private String questionText;
 
     @Column(columnDefinition = "text")
     private String explanation;
 
-    public Question(Lesson lesson, String questionText, String explanation) {
+    public Question(Lesson lesson, String questionText, String explanation, String questionType,
+                    String hint, String successMessage, String errorMessage) {
         this.lesson = lesson;
         this.questionText = questionText;
         this.explanation = explanation;
+        this.questionType = questionType;
+        this.hint = hint;
+        this.successMessage = successMessage;
+        this.errorMessage = errorMessage;
     }
 }

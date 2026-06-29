@@ -27,8 +27,11 @@ public class QuestionOption {
     @Column(name = "option_text", nullable = false, columnDefinition = "text")
     private String optionText;
 
-    @Column(name = "is_correct", nullable = false)
-    private Boolean isCorrect;
+    @Column(name = "is_correct")
+    private Boolean isCorrect; // ¡Debe ser la clase Wrapper para soportar el null!
+
+    @Column(name = "match_category")
+    private String matchCategory; // Guardará el texto de la caja destino
 
     public QuestionOption(Question question, String optionText, Boolean isCorrect) {
         this.question = question;
