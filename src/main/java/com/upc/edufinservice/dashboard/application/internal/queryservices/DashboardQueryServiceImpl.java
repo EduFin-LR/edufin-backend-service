@@ -10,6 +10,7 @@ import com.upc.edufinservice.gamification.domain.model.queries.GetGamificationPr
 import com.upc.edufinservice.gamification.domain.services.GamificationQueryService;
 import com.upc.edufinservice.iam.domain.model.queries.GetUserByIdQuery;
 import com.upc.edufinservice.iam.domain.services.UserQueryService;
+import com.upc.edufinservice.learning.domain.model.ValueObjetcts.ProgressStatus;
 import com.upc.edufinservice.learning.domain.model.aggregates.Lesson;
 import com.upc.edufinservice.learning.domain.model.queries.GetAllTopicsQuery;
 import com.upc.edufinservice.learning.domain.model.queries.GetLessonsByTopicIdQuery;
@@ -97,8 +98,11 @@ public class DashboardQueryServiceImpl {
             }
         }
 
-        // 4. CONSTRUIR EL PROGRESO REAL - ¡REFACCTORIZADO Y SEGURO!
-        for (var topic : topics) {
+
+        // 4. CONSTRUIR EL PROGRESO REAL
+        for (int i = 0; i < topics.size(); i++) {
+            var topic = topics.get(i);
+
             // A. Le pedimos a Learning las lecciones oficiales de este tema
             var lessons = learningQueryService.handle(new GetLessonsByTopicIdQuery(topic.getId()));
             int totalLecciones = lessons.size();
@@ -111,11 +115,31 @@ public class DashboardQueryServiceImpl {
 
             int porcentaje = totalLecciones > 0 ? (leccionesCompletadas * 100) / totalLecciones : 0;
 
-            String status = "PENDING";
-            if (leccionesCompletadas > 0 && leccionesCompletadas < totalLecciones) {
-                status = "IN_PROGRESS";
-            } else if (totalLecciones > 0 && leccionesCompletadas == totalLecciones) {
-                status = "COMPLETED";
+            // Por defecto, asumimos que el tema macro está bloqueado
+            String status = ProgressStatus.LOCKED.name();
+
+            // Regla de oro: Está disponible si es la primera unidad o si la unidad previa ya se completó
+            boolean isTopicAvailable = (i == 0) || ProgressStatus.COMPLETED.name().equals(learningPath.get(i - 1).status());
+
+            if (isTopicAvailable) {
+                if (totalLecciones > 0 && leccionesCompletadas == totalLecciones) {
+                    status = ProgressStatus.COMPLETED.name();
+                } else if (leccionesCompletadas > 0) {
+                    status = ProgressStatus.IN_PROGRESS.name();
+                } else {
+                    // Si completed == 0: Evaluamos si ya inició formalmente la primera lección del tema
+                    boolean hasStartedFirstLesson = false;
+                    if (!lessons.isEmpty()) {
+                        boolean isFirstLessonOfApp = (i == 0);
+                        String firstLessonStatus = assessmentQueryService.getLessonStatus(userId, lessons.get(0).getId(), isFirstLessonOfApp);
+
+                        if (ProgressStatus.IN_PROGRESS.name().equals(firstLessonStatus)) {
+                            hasStartedFirstLesson = true;
+                        }
+                    }
+                    // Si ya le dio a "start", pasa a IN_PROGRESS; sino, se queda listo para jugar (UNLOCKED)
+                    status = hasStartedFirstLesson ? ProgressStatus.IN_PROGRESS.name() : ProgressStatus.UNLOCKED.name();
+                }
             }
 
             boolean isAiRecommended = topic.getId().equals(topicIdRecomendado);
