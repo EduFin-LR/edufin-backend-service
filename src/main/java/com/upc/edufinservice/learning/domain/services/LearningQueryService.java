@@ -7,6 +7,7 @@ import com.upc.edufinservice.learning.domain.model.entities.QuestionOption;
 import com.upc.edufinservice.learning.domain.model.queries.*;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface LearningQueryService {
     List<Topic> handle(GetAllTopicsQuery query);
@@ -18,4 +19,6 @@ public interface LearningQueryService {
     Topic handle(GetTopicByQuestionIdQuery query);
 
     List<Question> handle(GetRandomQuestionsQuery query);
+
+    Optional<Topic> handle(GetTopicByIdQuery query);
 }

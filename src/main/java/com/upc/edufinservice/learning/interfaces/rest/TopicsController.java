@@ -10,6 +10,8 @@ import com.upc.edufinservice.iam.domain.model.queries.GetUserByUsernameQuery;
 import com.upc.edufinservice.iam.domain.services.UserQueryService;
 import com.upc.edufinservice.learning.domain.model.ValueObjetcts.ProgressStatus;
 import com.upc.edufinservice.learning.domain.model.aggregates.Lesson;
+import com.upc.edufinservice.learning.domain.model.queries.GetTopicByIdQuery;
+import com.upc.edufinservice.learning.interfaces.rest.resources.TopicLessonsResponse;
 import com.upc.edufinservice.shared.infrastructure.exceptions.MissingJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -110,33 +112,44 @@ public class TopicsController {
     }
 
     @GetMapping("/{topicId}/lessons")
-    public ResponseEntity<List<LessonResource>> getLessonsByTopicId(@PathVariable UUID topicId) {
+    public ResponseEntity<TopicLessonsResponse> getLessonsByTopicId(@PathVariable UUID topicId) {
         UUID safeUserId = getSafeUserIdFromToken();
-        var lessons = queryService.handle(new GetLessonsByTopicIdQuery(topicId));
+        // 1. Buscamos el Tema Padre para extraer su título y categoría
+        var topicOpt = queryService.handle(new GetTopicByIdQuery(topicId));
+        if (topicOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El tema solicitado no existe.");
+        }
+        var topic = topicOpt.get();
 
+        // 2. Traemos las lecciones asociadas a este tema
+        var lessons = queryService.handle(new GetLessonsByTopicIdQuery(topicId));
         if (lessons.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay lecciones para el tema solicitado.");
         }
 
-        // Jalamos la lista general de todos los temas ordenados para saber cuál es el primerísimo nivel del juego
         var allTopics = queryService.handle(new GetAllTopicsQuery());
         UUID firstTopicId = allTopics.isEmpty() ? null : allTopics.get(0).getId();
 
         List<LessonResource> enrichedLessons = new ArrayList<>();
 
         for (var l : lessons) {
-            // Regla de control: Es la primerísima lección si pertenece al Topic 1 y su lessonOrder es 1
             boolean isFirstLessonOfApp = topicId.equals(firstTopicId) && l.getLessonOrder() == 1;
-
-            // Le consultamos al motor analítico el estado real de este nivel para el alumno
             String status = assessmentQueryService.getLessonStatus(safeUserId, l.getId(), isFirstLessonOfApp);
 
             enrichedLessons.add(new LessonResource(
-                    l.getId(), l.getTitle(), l.getContent(), l.getVideoUrl(), status
+                    l.getId(), l.getTitle(), l.getContent(), l.getVideoUrl(), l.getLessonOrder(), status
             ));
         }
 
-        return ResponseEntity.ok(enrichedLessons);
+        // 3. 🚀 Construimos la respuesta unificada Padre-Hijo para React
+        var response = new TopicLessonsResponse(
+                topic.getId(),
+                topic.getName(),      // Aquí viaja el "AHORRO BÁSICO"
+                topic.getCategory(),
+                enrichedLessons
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     // Método privado y seguro para extraer la identidad del estudiante desde el JWT
