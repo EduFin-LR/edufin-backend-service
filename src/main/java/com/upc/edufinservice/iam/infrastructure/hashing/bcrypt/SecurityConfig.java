@@ -116,6 +116,8 @@ public class SecurityConfig {
         // 3. Cabeceras permitidas (Crucial para que pase el Authorization: Bearer)
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 
+        configuration.setAllowCredentials(true);
+
         // 4. Aplicar a todas las rutas de tu API
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
