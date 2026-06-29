@@ -1,5 +1,6 @@
 package com.upc.edufinservice.learning.domain.model.aggregates;
 
+import com.upc.edufinservice.learning.domain.model.ValueObjetcts.LessonType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,11 +37,16 @@ public class Lesson {
     @Column(name = "video_url", columnDefinition = "text")
     private String videoUrl;
 
-    public Lesson(Topic topic, Integer lessonOrder, String title, String content, String videoUrl) {
+    @Enumerated(EnumType.STRING) // NUEVO: Mapeo explícito como String en la BD
+    @Column(name = "lesson_type", nullable = false, length = 50)
+    private LessonType lessonType;
+
+    public Lesson(Topic topic, Integer lessonOrder, String title, String content, String videoUrl, LessonType lessonType) {
         this.topic = topic;
         this.lessonOrder = lessonOrder;
         this.title = title;
         this.content = content;
         this.videoUrl = videoUrl;
+        this.lessonType = lessonType;
     }
 }
