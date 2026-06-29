@@ -4,10 +4,12 @@ import com.upc.edufinservice.assessment.domain.model.aggregates.DiagnosticResult
 import com.upc.edufinservice.assessment.domain.model.aggregates.QuestionAttempt;
 import com.upc.edufinservice.assessment.domain.model.commands.EvaluateDiagnosticCommand;
 import com.upc.edufinservice.assessment.domain.model.commands.DiagnosticResponse;
+import com.upc.edufinservice.assessment.domain.model.events.DiagnosticCompletedEvent;
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.DiagnosticResultRepository;
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.QuestionAttemptRepository;
 import com.upc.edufinservice.learning.domain.model.queries.GetOptionsByQuestionIdQuery;
 import com.upc.edufinservice.learning.domain.services.LearningQueryService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,13 +19,16 @@ public class DiagnosticCommandServiceImpl {
     private final DiagnosticResultRepository diagnosticResultRepository;
     private final QuestionAttemptRepository questionAttemptRepository;
     private final LearningQueryService learningQueryService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public DiagnosticCommandServiceImpl(DiagnosticResultRepository diagnosticResultRepository,
                                         QuestionAttemptRepository questionAttemptRepository,
-                                        LearningQueryService learningQueryService) {
+                                        LearningQueryService learningQueryService,
+                                        ApplicationEventPublisher eventPublisher) {
         this.diagnosticResultRepository = diagnosticResultRepository;
         this.questionAttemptRepository = questionAttemptRepository;
         this.learningQueryService = learningQueryService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -97,6 +102,9 @@ public class DiagnosticCommandServiceImpl {
         // 5. Guardar el resultado consolidado del diagnóstico del alumno
         var result = new DiagnosticResult(command.userId(), score);
         diagnosticResultRepository.save(result);
+
+        //¡Nuevo!: Publicamos el evento cruzado hacia gamificación
+        eventPublisher.publishEvent(new DiagnosticCompletedEvent(command.userId(), score));
 
         // Retornamos el objeto enriquecido para que el controlador lo mande limpio a React
         return new DiagnosticResponse(
