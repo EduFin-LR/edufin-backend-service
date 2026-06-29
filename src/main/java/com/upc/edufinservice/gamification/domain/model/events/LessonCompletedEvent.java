@@ -1,4 +1,4 @@
-﻿package com.upc.edufinservice.gamification.domain.model.events;
+package com.upc.edufinservice.gamification.domain.model.events;
 
 import java.util.UUID;
 
