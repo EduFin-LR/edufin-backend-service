@@ -137,7 +137,7 @@ public class TopicsController {
             String status = assessmentQueryService.getLessonStatus(safeUserId, l.getId(), isFirstLessonOfApp);
 
             enrichedLessons.add(new LessonResource(
-                    l.getId(), l.getTitle(), l.getContent(), l.getVideoUrl(), l.getLessonOrder(), status
+                    l.getId(), l.getTitle(), l.getContent(), l.getVideoUrl(), l.getLessonOrder(), l.getLessonType().name(),status
             ));
         }
 

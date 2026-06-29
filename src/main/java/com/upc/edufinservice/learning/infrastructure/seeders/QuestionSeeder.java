@@ -2,6 +2,7 @@ package com.upc.edufinservice.learning.infrastructure.seeders;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.upc.edufinservice.learning.domain.model.ValueObjetcts.LessonType;
 import com.upc.edufinservice.learning.domain.model.aggregates.Lesson;
 import com.upc.edufinservice.learning.domain.model.aggregates.Question;
 import com.upc.edufinservice.learning.domain.model.aggregates.Topic;
@@ -67,7 +68,8 @@ public class QuestionSeeder implements CommandLineRunner {
                                 dto.lesson_order(), // <-- Agregado el orden secuencial
                                 dto.lesson_title(),
                                 "Contenido conceptual lúdico en desarrollo.",
-                                "https://url-video-pendiente.com"
+                                "https://url-video-pendiente.com",
+                                LessonType.QUIZ
                         )));
 
                 // 3. Crear la Pregunta usando tu nuevo constructor de 7 parámetros - ¡CORREGIDO!
