@@ -8,6 +8,7 @@ public record QuestionAttemptResource(
         UUID userId,
         UUID questionId,
         UUID selectedOptionId,
+        String selectedMatchCategory,
         Boolean isCorrect,
         Float timeTakenSec,
         LocalDateTime attemptedAt

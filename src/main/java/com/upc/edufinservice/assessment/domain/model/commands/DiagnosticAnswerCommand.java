@@ -6,5 +6,6 @@ import java.util.UUID;
 public record DiagnosticAnswerCommand(
         UUID questionId,
         UUID selectedOptionId,
+        String selectedMatchCategory,
         Float timeTakenSec
 ) {}

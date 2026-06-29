@@ -2,15 +2,16 @@ package com.upc.edufinservice.assessment.interfaces.rest;
 
 import java.util.UUID;
 
+import com.upc.edufinservice.assessment.domain.model.commands.CompleteLessonCommand;
+import com.upc.edufinservice.assessment.domain.model.commands.LessonCompletionResponse;
+import com.upc.edufinservice.assessment.domain.model.commands.StartLessonCommand;
+import com.upc.edufinservice.assessment.interfaces.rest.resources.CompleteLessonResource;
 import com.upc.edufinservice.iam.domain.model.queries.GetUserByUsernameQuery;
 import com.upc.edufinservice.iam.domain.services.UserQueryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.upc.edufinservice.assessment.domain.services.AssessmentCommandService;
@@ -37,37 +38,63 @@ public class QuestionAttemptsController {
 
     @PostMapping
     public ResponseEntity<QuestionAttemptResource> submitAttempt(@RequestBody SubmitQuestionAttemptResource resource) {
-
-        // 1. EL BLINDAJE JWT: Extraemos el username (email) del token
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-            throw new MissingJwtException();
-        }
-
-        String currentUsername = authentication.getName();
-
-        // 1.1 Buscamos al usuario en la BD usando ese username (Asegúrate de inyectar userQueryService en el constructor)
-        var userOpt = userQueryService.handle(new GetUserByUsernameQuery(currentUsername));
-
-        if (userOpt.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "El usuario asociado a este token no existe.");
-        }
-
-        // 1.2 Ahora sí tenemos el UUID seguro y real
-        UUID safeUserId = userOpt.get().getId();
-
-        // 2. Traducimos el JSON entrante a un Comando pasándole el ID seguro
+        UUID safeUserId = getSafeUserIdFromToken();
         var command = SubmitQuestionAttemptCommandFromResourceAssembler.toCommandFromResource(resource, safeUserId);
-
-        // 3. Ejecutamos la lógica de negocio
         var attempt = assessmentCommandService.handle(command);
 
         if (attempt.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se pudo registrar el intento.");
         }
 
-        // 4. Traducimos la respuesta a un JSON de salida
         var attemptResource = QuestionAttemptResourceFromAggregateAssembler.toResourceFromAggregate(attempt.get());
         return new ResponseEntity<>(attemptResource, HttpStatus.CREATED);
+    }
+
+    // ========================================================================
+    // NUEVO ENDPOINT 1: Inicializar Lección (Cambia estado a IN_PROGRESS)
+    // ========================================================================
+    @PostMapping("/lessons/{lessonId}/start")
+    public ResponseEntity<String> startLesson(@PathVariable UUID lessonId) {
+        UUID safeUserId = getSafeUserIdFromToken();
+        try {
+            assessmentCommandService.handle(new StartLessonCommand(safeUserId, lessonId));
+            return ResponseEntity.ok("Lección iniciada correctamente en el motor de tracking.");
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        }
+    }
+
+    // ========================================================================
+    // NUEVO ENDPOINT 2: Finalizar Lección (Calcula nota y desbloquea el siguiente nivel)
+    // ========================================================================
+    @PostMapping("/lessons/{lessonId}/complete")
+    public ResponseEntity<LessonCompletionResponse> completeLesson(
+            @PathVariable UUID lessonId,
+            @RequestBody CompleteLessonResource resource
+    ) {
+        UUID safeUserId = getSafeUserIdFromToken();
+
+        // Ejecutamos el comando y capturamos las métricas calculadas internamente
+        LessonCompletionResponse response = assessmentCommandService.handle(new CompleteLessonCommand(
+                safeUserId,
+                lessonId,
+                resource.timeSpentSec()
+        ));
+
+        // Devolvemos el JSON con el conteo de buenas y malas a React
+        return ResponseEntity.ok(response);
+    }
+
+    // Método privado reutilizable para no duplicar el blindaje JWT
+    private UUID getSafeUserIdFromToken() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new MissingJwtException();
+        }
+        var userOpt = userQueryService.handle(new GetUserByUsernameQuery(authentication.getName()));
+        if (userOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no válido.");
+        }
+        return userOpt.get().getId();
     }
 }

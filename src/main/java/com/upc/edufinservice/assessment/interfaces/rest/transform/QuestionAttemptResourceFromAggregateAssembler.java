@@ -10,6 +10,7 @@ public class QuestionAttemptResourceFromAggregateAssembler {
                 attempt.getUserId(),
                 attempt.getQuestionId(),
                 attempt.getSelectedOptionId(),
+                attempt.getSelectedMatchCategory(), // ¡Inyectado para la respuesta de React!
                 attempt.getIsCorrect(),
                 attempt.getTimeTakenSec(),
                 attempt.getAttemptedAt()

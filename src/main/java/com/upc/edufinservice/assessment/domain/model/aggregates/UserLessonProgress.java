@@ -1,7 +1,6 @@
-package com.upc.edufinservice.learning.domain.model.entities;
+package com.upc.edufinservice.assessment.domain.model.aggregates;
 
 import com.upc.edufinservice.learning.domain.model.ValueObjetcts.ProgressStatus;
-import com.upc.edufinservice.learning.domain.model.aggregates.Lesson;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -15,7 +14,7 @@ import java.util.UUID;
 @Table(name = "user_lesson_progress")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // Crea el constructor vacío que exige JPA automáticamente
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserLessonProgress {
 
     @Id
@@ -25,9 +24,8 @@ public class UserLessonProgress {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lesson_id", nullable = false)
-    private Lesson lesson;
+    @Column(name = "lesson_id", nullable = false)
+    private UUID lessonId; // Mapeado como ID para mantener el desacoplamiento limpio
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -48,12 +46,9 @@ public class UserLessonProgress {
     @Column(name = "attempts", nullable = false)
     private Integer attempts;
 
-    // ========================================================================
-    // CONSTRUCTOR PERSONALIZADO (Para cuando el alumno inicia la lección)
-    // ========================================================================
-    public UserLessonProgress(UUID userId, Lesson lesson) {
+    public UserLessonProgress(UUID userId, UUID lessonId) {
         this.userId = userId;
-        this.lesson = lesson;
+        this.lessonId = lessonId;
         this.status = ProgressStatus.IN_PROGRESS;
         this.startedAt = LocalDateTime.now();
         this.score = 0.0f;
@@ -61,18 +56,12 @@ public class UserLessonProgress {
         this.attempts = 0;
     }
 
-    // ========================================================================
-    // MÉTODO DE DOMINIO (Para marcar la lección como terminada)
-    // ========================================================================
     public void markAsCompleted(Float finalScore, Integer additionalTimeSpent) {
         this.status = ProgressStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
-
-        // Regla de negocio: Solo actualizamos el score si el nuevo es mayor
         if (finalScore != null && finalScore > this.score) {
             this.score = finalScore;
         }
-
         this.timeSpentSec += additionalTimeSpent;
         this.attempts += 1;
     }

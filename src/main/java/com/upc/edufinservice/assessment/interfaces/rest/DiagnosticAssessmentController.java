@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.upc.edufinservice.assessment.domain.model.commands.DiagnosticResponse;
 import com.upc.edufinservice.iam.domain.model.queries.GetUserByUsernameQuery;
 import com.upc.edufinservice.iam.domain.services.UserQueryService;
 import org.springframework.http.HttpStatus;
@@ -51,29 +52,26 @@ public class DiagnosticAssessmentController {
 
     @GetMapping("/questions")
     public ResponseEntity<List<DiagnosticQuestionResource>> getDiagnosticQuestions(
-            @RequestParam(defaultValue = "5") int limit // Por defecto trae 5, pero React puede pedir más
+            @RequestParam(defaultValue = "10") int limit // ¡CAMBIADO A 10! Por defecto jalará las 5 del Tema 1 y 5 del Tema 2
     ) {
-                if (limit < 1) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El límite de preguntas debe ser mayor a cero.");
-                }
+        if (limit < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El límite de preguntas debe ser mayor a cero.");
+        }
 
-        // 1. Pedir N preguntas al azar al módulo de Learning
         var preguntasRandom = learningQueryService.handle(new GetRandomQuestionsQuery(limit));
 
-                if (preguntasRandom.isEmpty()) {
-                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay preguntas disponibles para el diagnóstico.");
-                }
+        if (preguntasRandom.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay preguntas disponibles para el diagnóstico.");
+        }
 
         List<DiagnosticQuestionResource> diagnosticTest = new ArrayList<>();
 
-        // 2. Por cada pregunta, buscamos sus opciones y armamos el JSON
         for (var pregunta : preguntasRandom) {
-
             var opcionesReal = learningQueryService.handle(new GetOptionsByQuestionIdQuery(pregunta.getId()));
 
-                        if (opcionesReal.isEmpty()) {
-                                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "La pregunta " + pregunta.getId() + " no tiene opciones configuradas.");
-                        }
+            if (opcionesReal.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "La pregunta " + pregunta.getId() + " no tiene opciones.");
+            }
 
             List<DiagnosticOptionResource> opcionesJson = opcionesReal.stream()
                     .map(opc -> new DiagnosticOptionResource(opc.getId(), opc.getOptionText()))
@@ -90,39 +88,33 @@ public class DiagnosticAssessmentController {
     }
 
     @PostMapping("/submit")
-    public ResponseEntity<DiagnosticResultResponseResource> submitDiagnostic(
-            @RequestBody SubmitDiagnosticResource request
-    ) {
-        // 1. EL BLINDAJE JWT: Extraemos el username (email) del token
+    public ResponseEntity<DiagnosticResponse> submitDiagnostic(@RequestBody SubmitDiagnosticResource request) {
+        // Blindaje JWT Seguro
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
             throw new MissingJwtException();
         }
 
         String currentUsername = authentication.getName();
-
-        // 🚀 CAMBIO 2: Buscamos al usuario en la BD para sacar su UUID real
         var userOpt = userQueryService.handle(new GetUserByUsernameQuery(currentUsername));
 
         if (userOpt.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "El usuario asociado a este token no existe.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "El usuario no existe.");
         }
 
-        // Ahora sí tenemos el UUID seguro
         UUID safeUserId = userOpt.get().getId();
-        // 2. Mapeamos el JSON (Resource) al Comando (Capa de Dominio)
+
+        // Mapeamos incluyendo de forma segura el match_category opcional por si hay arrastres
         var answerCommands = request.answers().stream()
-                .map(a -> new DiagnosticAnswerCommand(a.questionId(), a.selectedOptionId(), a.timeTakenSec()))
+                .map(a -> new DiagnosticAnswerCommand(a.questionId(), a.selectedOptionId(), a.selectedMatchCategory(), a.timeTakenSec()))
                 .toList();
 
         var command = new EvaluateDiagnosticCommand(safeUserId, answerCommands);
 
-        // 3. Ejecutamos el servicio seguro
-        float finalScore = _diagnosticCommandService.evaluateDiagnostic(command);
+        // Ejecutamos el servicio que calcula el perfil lúdico completo
+        DiagnosticResponse response = _diagnosticCommandService.evaluateDiagnostic(command);
 
-        return ResponseEntity.ok(new DiagnosticResultResponseResource(
-                finalScore,
-                "Diagnostico completado. El modelo DKT ha sido calibrado."
-        ));
+        // Devolvemos directamente el objeto enriquecido a React
+        return ResponseEntity.ok(response);
     }
 }
