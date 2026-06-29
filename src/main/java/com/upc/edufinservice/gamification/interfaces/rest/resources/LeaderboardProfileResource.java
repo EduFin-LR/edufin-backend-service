@@ -7,6 +7,7 @@ public record LeaderboardProfileResource(
         String displayName, // 🚀 ¡Aquí irá el nombre o username!
         Integer totalPoints,
         Integer currentLevel,
-        Integer streakDays
+        Integer streakDays,
+        String gender
 ) {
 }
