@@ -140,9 +140,11 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
         var lessonQuestions = _learningQueryService.handle(new GetQuestionsByLessonIdQuery(command.lessonId()));
         int totalQuestions = lessonQuestions.size();
         int correctQuestions = 0;
+        int totalAttempts = 0; // Sumador para cumplir con el parámetro "attempts" de tu evento
 
         for (var question : lessonQuestions) {
             var attempts = _repository.findByUserIdAndQuestionId(command.userId(), question.getId());
+            totalAttempts += attempts.size();
             boolean hasCorrectAttempt = attempts.stream().anyMatch(QuestionAttempt::getIsCorrect);
             if (hasCorrectAttempt) {
                 correctQuestions++;
@@ -182,11 +184,27 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
             }
         }
 
+        // ========================================================================
+        // 🎯 CÁLCULO DE XP Y PUBLICACIÓN DEL EVENTO
+        // ========================================================================
+
+        // 1. Calculamos la XP extra exactamente igual que lo hace Gamificación (Math.round)
+        int experienceGainedForCompletion = Math.round(calculatedScore);
+
+        // 2. Disparamos tu evento original con los 4 parámetros que exige
+        _eventPublisher.publishEvent(new com.upc.edufinservice.assessment.domain.model.events.LessonCompletedEvent(
+                command.userId(),
+                command.lessonId(),
+                calculatedScore,
+                totalAttempts
+        ));
+
         return new LessonCompletionResponse(
                 totalQuestions,
                 correctQuestions,
                 incorrectQuestions,
-                calculatedScore
+                calculatedScore,
+                experienceGainedForCompletion
         );
     }
 }

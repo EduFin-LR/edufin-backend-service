@@ -4,6 +4,7 @@ public record LessonCompletionResponse(
         int totalQuestions,
         int correctAnswers,
         int incorrectAnswers,
-        Float score
+        Float score,
+        int experienceGained
 ) {
 }
