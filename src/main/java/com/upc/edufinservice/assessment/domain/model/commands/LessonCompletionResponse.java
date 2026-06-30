@@ -4,7 +4,8 @@ public record LessonCompletionResponse(
         int totalQuestions,
         int correctAnswers,
         int incorrectAnswers,
-        Float score,
-        int experienceGained
+        int lessonExperience, // El bono por terminar (Math.round)
+        int questionsExperience, // Lo que ganó por responder bien
+        int totalExperience // La suma de todo
 ) {
 }

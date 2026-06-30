@@ -188,10 +188,16 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
         // 🎯 CÁLCULO DE XP Y PUBLICACIÓN DEL EVENTO
         // ========================================================================
 
-        // 1. Calculamos la XP extra exactamente igual que lo hace Gamificación (Math.round)
+        // 1. Bono por completar la lección (Igual a tu Math.round)
         int experienceGainedForCompletion = Math.round(calculatedScore);
 
-        // 2. Disparamos tu evento original con los 4 parámetros que exige
+        // 2. Puntos que el alumno YA fue ganando por sus respuestas (10 XP por cada buena)
+        int experienceFromQuestions = correctQuestions * 10;
+
+        // 3. Suma total para la celebración final
+        int totalExperience = experienceGainedForCompletion + experienceFromQuestions;
+
+        // Disparamos el evento original para que Gamificación guarde el bono final
         _eventPublisher.publishEvent(new com.upc.edufinservice.assessment.domain.model.events.LessonCompletedEvent(
                 command.userId(),
                 command.lessonId(),
@@ -199,12 +205,14 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
                 totalAttempts
         ));
 
+        // Retornamos el DTO desglosado hacia el controlador
         return new LessonCompletionResponse(
                 totalQuestions,
                 correctQuestions,
                 incorrectQuestions,
-                calculatedScore,
-                experienceGainedForCompletion
+                experienceGainedForCompletion,
+                experienceFromQuestions,
+                totalExperience
         );
     }
 }
