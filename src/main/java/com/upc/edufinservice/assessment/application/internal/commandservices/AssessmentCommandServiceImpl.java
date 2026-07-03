@@ -156,14 +156,12 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
         }
 
         int incorrectQuestions = totalQuestions - correctQuestions;
-
-        // CORRECCIÓN DE NOTA: Si es un VIDEO (0 preguntas), su nota automática de consumo es 100.0f
         float calculatedScore = totalQuestions > 0 ? ((float) correctQuestions / totalQuestions) * 100 : 100.0f;
 
         progress.markAsCompleted(calculatedScore, command.timeSpentSec());
         _userLessonProgressRepository.save(progress);
 
-        // CORRECCIÓN DESBLOQUEO AUTOMÁTICO: Buscador macro para saltar al siguiente hito del mapa
+        // Buscador macro para identificar el tema actual
         Topic currentTopic = null;
         var allTopics = _learningQueryService.handle(new GetAllTopicsQuery());
         for (var t : allTopics) {
@@ -179,7 +177,9 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
 
             for (int i = 0; i < orderedLessons.size(); i++) {
                 if (orderedLessons.get(i).getId().equals(command.lessonId())) {
+
                     if (i + 1 < orderedLessons.size()) {
+                        // 🟢 ESCENARIO A: Hay una siguiente lección dentro del MISMO Tema
                         var nextLesson = orderedLessons.get(i + 1);
                         var nextProgress = _userLessonProgressRepository
                                 .findByUserIdAndLessonId(command.userId(), nextLesson.getId())
@@ -192,6 +192,37 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
                         if (nextProgress.getStatus() == ProgressStatus.LOCKED) {
                             nextProgress.setStatus(ProgressStatus.UNLOCKED);
                             _userLessonProgressRepository.save(nextProgress);
+                        }
+                    } else {
+                        // 🔥 ESCENARIO B: ¡NUEVA LÓGICA! Era la ÚLTIMA lección del tema actual. Transición al Siguiente Tema.
+                        for (int j = 0; j < allTopics.size(); j++) {
+                            if (allTopics.get(j).getId().equals(currentTopic.getId())) {
+                                if (j + 1 < allTopics.size()) {
+                                    // Existe un siguiente módulo en el mapa (Ej: pasar de Tema 1 a Tema 2)
+                                    var nextTopic = allTopics.get(j + 1);
+                                    var nextTopicLessons = _learningQueryService.handle(new GetLessonsByTopicIdQuery(nextTopic.getId()));
+
+                                    if (!nextTopicLessons.isEmpty()) {
+                                        // Extraemos de forma segura la PRIMERÍSIMA lección del nuevo módulo
+                                        var firstLessonOfNextTopic = nextTopicLessons.get(0);
+
+                                        var nextTopicLessonProgress = _userLessonProgressRepository
+                                                .findByUserIdAndLessonId(command.userId(), firstLessonOfNextTopic.getId())
+                                                .orElseGet(() -> {
+                                                    UserLessonProgress ulp = new UserLessonProgress(command.userId(), firstLessonOfNextTopic.getId());
+                                                    ulp.setStatus(ProgressStatus.LOCKED);
+                                                    return ulp;
+                                                });
+
+                                        if (nextTopicLessonProgress.getStatus() == ProgressStatus.LOCKED) {
+                                            nextTopicLessonProgress.setStatus(ProgressStatus.UNLOCKED);
+                                            _userLessonProgressRepository.save(nextTopicLessonProgress);
+                                            System.out.println("🔓 [TRACKING] ¡Tema completado con éxito! Desbloqueada la lección inicial del siguiente tema: " + firstLessonOfNextTopic.getTitle());
+                                        }
+                                    }
+                                }
+                                break;
+                            }
                         }
                     }
                     break;
