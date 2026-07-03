@@ -7,8 +7,10 @@ public record QuestionResource(
         UUID id,
         String questionText,
         String explanation,
-        String questionType,       // Nuevo
-        String hint,               // Nuevo
-        String successMessage,     // Nuevo
-        String errorMessage,       // Nuevo
+        String questionType,
+        String hint,
+        String successMessage,
+        String errorMessage,
+        Integer dktSkillId,
+        String TheoryText,
         List<QuestionOptionResource> options) {}

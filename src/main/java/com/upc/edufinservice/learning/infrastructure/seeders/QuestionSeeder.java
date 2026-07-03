@@ -61,40 +61,59 @@ public class QuestionSeeder implements CommandLineRunner {
                             return topicRepository.save(t);
                         });
 
-                // 2. Buscar o crear la Lesson (Lección) - ¡CORREGIDO!
-                Lesson lesson = lessonRepository.findByTitleAndTopicId(dto.lesson_title(), topic.getId())
+                // 2. Mapear el LessonType de String (JSON) a tu Enum de JPA
+                LessonType currentType = LessonType.valueOf(dto.lesson_type());
+
+                // 🔥 CORRECCIÓN 2: Lógica dinámica para guardar Teoría o Descripción de Video en el campo "content"
+                String content = dto.theory_text() != null ? dto.theory_text() :
+                        (dto.video_description() != null ? dto.video_description() : "Contenido interactivo");
+
+                String videoUrl = dto.video_url() != null ? dto.video_url() : "https://sin-video.com";
+
+                // 🔥 CORRECCIÓN 3 y 4: Búsqueda con Topic_Id e inyección del dktSkillId en Lesson
+                Lesson lesson = lessonRepository.findByTitleAndLessonTypeAndTopic_Id(dto.lesson_title(), currentType, topic.getId())
                         .orElseGet(() -> lessonRepository.save(new Lesson(
                                 topic,
-                                dto.lesson_order(), // <-- Agregado el orden secuencial
+                                dto.lesson_order(),
                                 dto.lesson_title(),
-                                "Contenido conceptual lúdico en desarrollo.",
-                                "https://url-video-pendiente.com",
-                                LessonType.QUIZ
+                                content,
+                                videoUrl,
+                                currentType,
+                                dto.dkt_skill_id() // ¡IA tracking activado para lecciones y videos!
                         )));
 
-                // 3. Crear la Pregunta usando tu nuevo constructor de 7 parámetros - ¡CORREGIDO!
+                // Si la estación es de tipo VIDEO, no mapea preguntas ni opciones
+                if (currentType == LessonType.VIDEO) {
+                    continue;
+                }
+
+                // 🔥 CORRECCIÓN 4: Inyección del dktSkillId en las Question
                 Question question = new Question(
                         lesson,
                         dto.question_text(),
                         dto.explanation(),
-                        dto.question_type(),    // <-- Tipo (MULTIPLE_CHOICE / DRAG_AND_DROP)
-                        dto.hint(),             // <-- Pista
-                        dto.success_message(),   // <-- Feedback correcto
-                        dto.error_message()     // <-- Feedback incorrecto
+                        dto.question_type(),
+                        dto.hint(),
+                        dto.success_message(),
+                        dto.error_message(),
+                        dto.dkt_skill_id(),
+                        dto.theory_text()// ¡IA tracking activado para cada pregunta!
                 );
                 questionRepository.save(question);
 
-                // 4. Crear las Opciones de la pregunta
-                for (OptionSeedDto optionDto : dto.options()) {
-                    QuestionOption option = new QuestionOption(question, optionDto.option_text(), optionDto.is_correct());
-                    option.setMatchCategory(optionDto.match_category());
-                    questionOptionRepository.save(option);
+                // Crear las Opciones de la pregunta (si existen)
+                if (dto.options() != null) {
+                    for (OptionSeedDto optionDto : dto.options()) {
+                        QuestionOption option = new QuestionOption(question, optionDto.option_text(), optionDto.is_correct());
+                        option.setMatchCategory(optionDto.match_category());
+                        questionOptionRepository.save(option);
+                    }
                 }
             }
-            System.out.println("✅ [SEEDER] ¡Banco de preguntas, lecciones y tópicos inyectados con éxito!");
+            System.out.println("✅ [SEEDER] ¡La arquitectura unificada con IA se ha guardado exitosamente!");
 
         } catch (Exception e) {
-            System.err.println("❌ [SEEDER] Error leyendo el archivo preguntas.json: " + e.getMessage());
+            System.err.println("❌ [SEEDER] Error procesando las entidades: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -106,6 +125,10 @@ public class QuestionSeeder implements CommandLineRunner {
             Integer dkt_skill_id,
             String lesson_title,
             Integer lesson_order,
+            String lesson_type,
+            String theory_text,
+            String video_url,
+            String video_description,
             String question_text,
             String question_type,
             String hint,

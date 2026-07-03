@@ -21,4 +21,6 @@ public interface LearningQueryService {
     List<Question> handle(GetRandomQuestionsQuery query);
 
     Optional<Topic> handle(GetTopicByIdQuery query);
+
+    Optional<Question> handle(GetQuestionByIdQuery query);
 }
