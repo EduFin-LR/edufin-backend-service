@@ -11,4 +11,7 @@ import java.util.UUID;
 public interface MlPredictionRepository extends JpaRepository<MlPrediction, UUID> {
     // Para buscar la predicción más reciente de un usuario en un tema específico
     Optional<MlPrediction> findByUserIdAndTopicId(UUID userId, UUID topicId);
+
+    //Nuevo: Permite saber si hay una Side Quest activa para una lección específica
+    Optional<MlPrediction> findByUserIdAndRecommendedLessonId(UUID userId, UUID recommendedLessonId);
 }
