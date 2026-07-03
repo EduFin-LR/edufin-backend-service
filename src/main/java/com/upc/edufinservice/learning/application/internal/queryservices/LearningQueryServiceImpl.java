@@ -92,10 +92,16 @@ public class LearningQueryServiceImpl implements LearningQueryService {
 
        return balancedDiagnostic;
    }
-   
-   //Nuevo
+
     @Override
     public Optional<Topic> handle(GetTopicByIdQuery query){
         return topicRepository.findById(query.topicId());
     }
+
+    //Nuevo
+    @Override
+    public Optional<Question> handle(GetQuestionByIdQuery query){
+        return questionRepository.findById(query.question_id());
+    }
+
 }

@@ -10,6 +10,7 @@ import com.upc.edufinservice.analytics.infrastructure.external.fastapi.FastAPICl
 import com.upc.edufinservice.analytics.infrastructure.external.fastapi.dto.SolicitudPrediccionDto;
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredCorrectlyEvent;
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredIncorrectlyEvent;
+import com.upc.edufinservice.learning.domain.model.queries.GetQuestionByIdQuery;
 import com.upc.edufinservice.learning.domain.model.queries.GetTopicByQuestionIdQuery;
 import com.upc.edufinservice.learning.domain.services.LearningQueryService;
 import org.springframework.context.event.EventListener;
@@ -48,6 +49,7 @@ public class AssessmentEventsHandler {
 
     @EventListener
     public void on(QuestionAnsweredIncorrectlyEvent event) {
+        // El patrón de errores macro (Alcancías) se mantiene a nivel de Tema (Topic)
         var topic = learningQueryService.handle(new GetTopicByQuestionIdQuery(event.questionId()));
 
         var errorPattern = errorPatternRepository.findByUserIdAndTopicId(event.userId(), topic.getId())
@@ -60,26 +62,31 @@ public class AssessmentEventsHandler {
     }
 
     private void processInteraction(UUID userId, UUID questionId, Integer isCorrect) {
+        // 🔥 CORRECCIÓN CRÍTICA: Extraemos la pregunta para obtener su habilidad granular e individual
+        var question = learningQueryService.handle(new GetQuestionByIdQuery(questionId))
+                .orElseThrow(() -> new IllegalArgumentException("Pregunta no encontrada para tracking de IA"));
+
         var topic = learningQueryService.handle(new GetTopicByQuestionIdQuery(questionId));
 
-        if (topic.getDktSkillId() != null) {
+        Integer activeSkillId = question.getDktSkillId();
 
-            // 1. Guardar la interacción actual en la bitácora
-            var currentInteraction = new StudentInteraction(userId, topic.getDktSkillId(), isCorrect);
+        if (activeSkillId != null) {
+
+            // 1. Guardar la interacción actual en la bitácora con la habilidad exacta de la pregunta
+            var currentInteraction = new StudentInteraction(userId, activeSkillId, isCorrect);
             interactionRepository.save(currentInteraction);
 
             // 2. Obtener todo el historial real cronológico del estudiante
             var historial = interactionRepository.findByUserIdOrderByInteractedAtAsc(userId);
 
-            // 2.1 Filtrar solo el historial de ESTE tema específico para calcular el olvido real
+            // 2.1 Filtrar el historial de esta habilidad específica para el cálculo temporal (DMMA)
             var historialDelTema = historial.stream()
-                    .filter(h -> h.getDktSkillId().equals(topic.getDktSkillId()))
+                    .filter(h -> h.getDktSkillId().equals(activeSkillId))
                     .collect(Collectors.toList());
 
             // 3. Calcular Días de Inactividad ESPECÍFICOS (DMMA)
             double diasInactividad = 0.0;
             if (historialDelTema.size() > 1) {
-                // Tomamos la penúltima interacción de ESTE tema (porque la última es la actual)
                 var interaccionAnterior = historialDelTema.get(historialDelTema.size() - 2).getInteractedAt();
                 var interaccionActual = currentInteraction.getInteractedAt();
 
@@ -87,25 +94,28 @@ public class AssessmentEventsHandler {
                 diasInactividad = segundos / 86400.0;
             }
 
-            // 4. Codificar la secuencia (Se usa el 'historial' completo, no el filtrado)
+            // 4. Codificar la secuencia matemática tradicional DKT: (Skill * 2) + isCorrect
             List<Integer> secuenciaReal = historial.stream()
                     .map(h -> (h.getDktSkillId() * 2) + h.getIsCorrect())
                     .collect(Collectors.toList());
 
-            // 5. Armar el paquete y enviarlo a FastAPI
+            // 5. Armar el contrato de inferencia enviando la habilidad objetivo real
             var payload = new SolicitudPrediccionDto(
                     userId.toString(),
                     secuenciaReal,
-                    topic.getDktSkillId(),
+                    activeSkillId, // <-- Cambiado de topic.getDktSkillId() a activeSkillId
                     diasInactividad
             );
 
-            System.out.println("[ANALYTICS] Secuencia DKT armada: " + secuenciaReal + " | Días inactividad: " + diasInactividad);
+            System.out.println("[ANALYTICS] Secuencia granular enviada a FastAPI: " + secuenciaReal + " | Skill Objetivo: " + activeSkillId);
 
             var respuesta = fastApiClient.obtenerPrediccion(payload);
 
             if (respuesta != null) {
                 Float nuevaProbabilidad = respuesta.probabilidad_final_dmma().floatValue();
+
+                // Mantenemos el almacenamiento de la predicción acoplado al Tema principal
+                // para que el mapa de carreteras pueda renderizar el "Nivel Sugerido" (Fácil, Medio, Avanzado)
                 var prediccionExistente = mlPredictionRepository.findByUserIdAndTopicId(userId, topic.getId());
 
                 if (prediccionExistente.isPresent()) {

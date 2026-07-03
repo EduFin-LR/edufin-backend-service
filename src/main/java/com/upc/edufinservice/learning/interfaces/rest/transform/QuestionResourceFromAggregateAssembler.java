@@ -23,10 +23,12 @@ public class QuestionResourceFromAggregateAssembler {
                 question.getId(),
                 question.getQuestionText(),
                 question.getExplanation(),
-                question.getQuestionType(),    // Mapeamos el tipo
-                question.getHint(),            // Mapeamos la pista
-                question.getSuccessMessage(),  // Mapeamos mensaje éxito
-                question.getErrorMessage(),    // Mapeamos mensaje error
+                question.getQuestionType(),
+                question.getHint(),
+                question.getSuccessMessage(),
+                question.getErrorMessage(),
+                question.getDktSkillId(),
+                question.getTheoryText(),//NUEVO: Extraemos el ID de la entidad
                 optionResources
         );
     }

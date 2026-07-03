@@ -35,14 +35,21 @@ public class Question {
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
-    @Column(name = "question_text", nullable = false, columnDefinition = "text")
+    @Column(name = "question_text", columnDefinition = "text")
     private String questionText;
 
     @Column(columnDefinition = "text")
     private String explanation;
 
+    @Column(name = "dkt_skill_id")
+    private Integer dktSkillId;
+
+    @Column(name = "theory_text", columnDefinition = "text")
+    private String theoryText;
+
     public Question(Lesson lesson, String questionText, String explanation, String questionType,
-                    String hint, String successMessage, String errorMessage) {
+                    String hint, String successMessage, String errorMessage, Integer dktSkillId,
+                    String theoryText) {
         this.lesson = lesson;
         this.questionText = questionText;
         this.explanation = explanation;
@@ -50,5 +57,7 @@ public class Question {
         this.hint = hint;
         this.successMessage = successMessage;
         this.errorMessage = errorMessage;
+        this.dktSkillId = dktSkillId;
+        this.theoryText = theoryText; // Almacena la teoría específica de esta diapositiva
     }
 }

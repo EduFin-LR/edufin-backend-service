@@ -1,5 +1,6 @@
 package com.upc.edufinservice.learning.infrastructure.persistence.jpa.repositories;
 
+import com.upc.edufinservice.learning.domain.model.ValueObjetcts.LessonType;
 import com.upc.edufinservice.learning.domain.model.aggregates.Lesson;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -23,6 +24,8 @@ public interface LessonRepository extends JpaRepository<Lesson, UUID> {
 
     // Devuelve las lecciones ordenadas
     List<Lesson> findByTopic_IdOrderByLessonOrderAsc(UUID topicId);
+
+    Optional<Lesson> findByTitleAndLessonTypeAndTopic_Id(String title, LessonType lessonType, UUID topicId);
 
     Optional<Lesson> findByTopic_IdAndLessonOrder(UUID topicId, Integer lessonOrder);
 }

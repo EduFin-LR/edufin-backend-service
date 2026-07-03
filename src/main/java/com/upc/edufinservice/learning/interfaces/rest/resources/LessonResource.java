@@ -8,6 +8,7 @@ public record LessonResource(
         String content,
         String videoUrl,
         Integer lessonOrder,
-        String lessonType, // ¡NUEVO!: Entrega si es "LESSON", "QUIZZ", "VIDEO" o "FINAL"
-        String status // "LOCKED", "UNLOCKED", "IN_PROGRESS", "COMPLETED"
+        String lessonType,
+        String status,
+        Integer dktSkillId //NUEVO: Permite trackear pasivamente los videos y lecturas
 ) {}

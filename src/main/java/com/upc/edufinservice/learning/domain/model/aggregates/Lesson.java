@@ -37,16 +37,22 @@ public class Lesson {
     @Column(name = "video_url", columnDefinition = "text")
     private String videoUrl;
 
-    @Enumerated(EnumType.STRING) // NUEVO: Mapeo explícito como String en la BD
+    @Enumerated(EnumType.STRING)
     @Column(name = "lesson_type", nullable = false, length = 50)
     private LessonType lessonType;
 
-    public Lesson(Topic topic, Integer lessonOrder, String title, String content, String videoUrl, LessonType lessonType) {
+    //NUEVO: Identificador de la habilidad para el rastreo pasivo de la IA
+    @Column(name = "dkt_skill_id")
+    private Integer dktSkillId;
+
+    public Lesson(Topic topic, Integer lessonOrder, String title, String content,
+                  String videoUrl, LessonType lessonType, Integer dktSkillId) {
         this.topic = topic;
         this.lessonOrder = lessonOrder;
         this.title = title;
         this.content = content;
         this.videoUrl = videoUrl;
         this.lessonType = lessonType;
+        this.dktSkillId = dktSkillId;
     }
 }
