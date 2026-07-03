@@ -28,4 +28,18 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
             "WHERE l.topic_id = :topicId " +
             "ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
     List<Question> findRandomQuestionsByTopic(@Param("topicId") UUID topicId, @Param("limit") int limit);
+
+
+    // NUEVA CONSULTA: Extrae preguntas aleatorias de reforzamiento para la Side Quest
+    // Filtra por la habilidad en crisis (dktSkillId) y el tipo de lección evaluativa (ej. 'QUIZ')
+    @Query(value = "SELECT q.* FROM questions q " +
+            "JOIN lessons l ON q.lesson_id = l.id " +
+            "WHERE q.dkt_skill_id = :dktSkillId " +
+            "AND l.lesson_type = :lessonType " +
+            "ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+    List<Question> findSideQuestQuestionsBySkillAndType(
+            @Param("dktSkillId") Integer dktSkillId,
+            @Param("lessonType") String lessonType,
+            @Param("limit") int limit
+    );
 }
