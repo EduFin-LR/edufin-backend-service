@@ -9,6 +9,7 @@ import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredInco
 import com.upc.edufinservice.assessment.domain.services.AssessmentCommandService;
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.QuestionAttemptRepository;
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.UserLessonProgressRepository;
+import com.upc.edufinservice.learning.domain.model.aggregates.Topic;
 import com.upc.edufinservice.learning.domain.model.queries.*;
 import com.upc.edufinservice.learning.domain.services.LearningQueryService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -85,15 +86,12 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
     @Transactional
     public UserLessonProgress handle(StartLessonCommand command) {
         var progressOpt = _userLessonProgressRepository.findByUserIdAndLessonId(command.userId(), command.lessonId());
-
         // Escenario A: El registro ya existe en la Base de Datos (Fue desbloqueado previamente)
         if (progressOpt.isPresent()) {
             var progress = progressOpt.get();
-
             if (progress.getStatus() == ProgressStatus.LOCKED) {
                 throw new IllegalStateException("No puedes iniciar esta lección porque se encuentra bloqueada en tu mapa.");
             }
-
             // Si estaba en UNLOCKED (esperando ser jugada), la marcamos oficialmente en curso
             if (progress.getStatus() == ProgressStatus.UNLOCKED) {
                 progress.setStatus(ProgressStatus.IN_PROGRESS);
@@ -102,24 +100,26 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
             return progress;
         }
 
-        // Escenario B: No existe registro en la Base de Datos (Usuario nuevo o salto de nivel ilegal)
-        // Buscamos la metadata de la lección para auditar si califica como el Nivel 1 Global
-        var lessonQuestions = _learningQueryService.handle(new GetQuestionsByLessonIdQuery(command.lessonId()));
-        if (lessonQuestions.isEmpty()) {
-            throw new IllegalArgumentException("La lección solicitada no es válida o carece de contenido pedagógico.");
+        //CORRECCIÓN RELACIONAL: Buscamos el Topic navegando las colecciones sin depender de las preguntas
+        Topic currentTopic = null;
+        var allTopics = _learningQueryService.handle(new GetAllTopicsQuery());
+        for (var t : allTopics) {
+            var lessonsOfTopic = _learningQueryService.handle(new GetLessonsByTopicIdQuery(t.getId()));
+            if (lessonsOfTopic.stream().anyMatch(l -> l.getId().equals(command.lessonId()))) {
+                currentTopic = t;
+                break;
+            }
         }
 
-        var currentTopic = _learningQueryService.handle(new GetTopicByQuestionIdQuery(lessonQuestions.get(0).getId()));
+        if (currentTopic == null) {
+            throw new IllegalArgumentException("La lección solicitada no es válida o carece de contexto pedagógico.");
+        }
+
         var orderedLessons = _learningQueryService.handle(new GetLessonsByTopicIdQuery(currentTopic.getId()));
 
-        // 1. ¿Es la primera lección de este tema específico?
         boolean isFirstLessonOfTopic = !orderedLessons.isEmpty() && orderedLessons.get(0).getId().equals(command.lessonId());
-
-        // 2. ¿Es el primer tema oficial de todo el plan de estudios?
-        var allTopics = _learningQueryService.handle(new GetAllTopicsQuery());
         boolean isFirstTopicOfApp = !allTopics.isEmpty() && allTopics.get(0).getId().equals(currentTopic.getId());
 
-        // Regla de Oro: Solo se permite la auto-creación si es el Nivel Inicial Absoluto
         if (isFirstLessonOfTopic && isFirstTopicOfApp) {
             UserLessonProgress initialProgress = new UserLessonProgress(command.userId(), command.lessonId());
             initialProgress.setStatus(ProgressStatus.IN_PROGRESS);
@@ -130,6 +130,10 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
         throw new IllegalStateException("Acceso Denegado: Debes completar las lecciones predecesoras antes de acceder a este nivel.");
     }
 
+
+    // ========================================================================
+    // COMPLETADO DE LECCIÓN (FIXED FOR VIDEOS & MULTI-QUESTIONS)
+    // ========================================================================
     @Override
     @Transactional
     public LessonCompletionResponse handle(CompleteLessonCommand command) {
@@ -140,7 +144,7 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
         var lessonQuestions = _learningQueryService.handle(new GetQuestionsByLessonIdQuery(command.lessonId()));
         int totalQuestions = lessonQuestions.size();
         int correctQuestions = 0;
-        int totalAttempts = 0; // Sumador para cumplir con el parámetro "attempts" de tu evento
+        int totalAttempts = 0;
 
         for (var question : lessonQuestions) {
             var attempts = _repository.findByUserIdAndQuestionId(command.userId(), question.getId());
@@ -152,14 +156,25 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
         }
 
         int incorrectQuestions = totalQuestions - correctQuestions;
-        float calculatedScore = totalQuestions > 0 ? ((float) correctQuestions / totalQuestions) * 100 : 0.0f;
+
+        // CORRECCIÓN DE NOTA: Si es un VIDEO (0 preguntas), su nota automática de consumo es 100.0f
+        float calculatedScore = totalQuestions > 0 ? ((float) correctQuestions / totalQuestions) * 100 : 100.0f;
 
         progress.markAsCompleted(calculatedScore, command.timeSpentSec());
         _userLessonProgressRepository.save(progress);
 
-        if (!lessonQuestions.isEmpty()) {
-            var sampleQuestion = lessonQuestions.get(0);
-            var currentTopic = _learningQueryService.handle(new GetTopicByQuestionIdQuery(sampleQuestion.getId()));
+        // CORRECCIÓN DESBLOQUEO AUTOMÁTICO: Buscador macro para saltar al siguiente hito del mapa
+        Topic currentTopic = null;
+        var allTopics = _learningQueryService.handle(new GetAllTopicsQuery());
+        for (var t : allTopics) {
+            var lessonsOfTopic = _learningQueryService.handle(new GetLessonsByTopicIdQuery(t.getId()));
+            if (lessonsOfTopic.stream().anyMatch(l -> l.getId().equals(command.lessonId()))) {
+                currentTopic = t;
+                break;
+            }
+        }
+
+        if (currentTopic != null) {
             var orderedLessons = _learningQueryService.handle(new GetLessonsByTopicIdQuery(currentTopic.getId()));
 
             for (int i = 0; i < orderedLessons.size(); i++) {
