@@ -8,6 +8,7 @@ import com.upc.edufinservice.gamification.infrastructure.persistence.jpa.reposit
 import com.upc.edufinservice.gamification.infrastructure.persistence.jpa.repositories.GamificationProfileRepository;
 import com.upc.edufinservice.gamification.infrastructure.persistence.jpa.repositories.UserAchievementRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -27,6 +28,7 @@ public class GamificationCommandServiceImpl implements GamificationCommandServic
     }
 
     @Override
+    @Transactional
     public Optional<GamificationProfile> handle(AddPointsCommand command) {
         var profile = profileRepository.findByUserId(command.userId())
                 .orElseGet(() -> new GamificationProfile(command.userId()));
