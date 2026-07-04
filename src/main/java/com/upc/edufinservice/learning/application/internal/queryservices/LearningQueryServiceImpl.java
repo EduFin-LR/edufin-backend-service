@@ -98,10 +98,19 @@ public class LearningQueryServiceImpl implements LearningQueryService {
         return topicRepository.findById(query.topicId());
     }
 
-    //Nuevo
     @Override
     public Optional<Question> handle(GetQuestionByIdQuery query){
         return questionRepository.findById(query.question_id());
     }
 
+    //Nuevo
+
+    @Override
+    public List<Question> handle(GetSideQuestQuestionsBySkillQuery query) {
+        return questionRepository.findSideQuestQuestionsBySkillAndType(
+                query.dktSkillId(),
+                "QUIZ",
+                query.limit()
+        );
+    }
 }

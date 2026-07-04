@@ -11,6 +11,7 @@ import com.upc.edufinservice.analytics.infrastructure.external.fastapi.dto.Solic
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredCorrectlyEvent;
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredIncorrectlyEvent;
 import com.upc.edufinservice.learning.domain.model.queries.GetQuestionByIdQuery;
+import com.upc.edufinservice.learning.domain.model.queries.GetSideQuestQuestionsBySkillQuery;
 import com.upc.edufinservice.learning.domain.model.queries.GetTopicByQuestionIdQuery;
 import com.upc.edufinservice.learning.domain.services.LearningQueryService;
 import org.springframework.context.event.EventListener;
@@ -62,12 +63,11 @@ public class AssessmentEventsHandler {
     }
 
     private void processInteraction(UUID userId, UUID questionId, Integer isCorrect) {
-        // 🔥 CORRECCIÓN CRÍTICA: Extraemos la pregunta para obtener su habilidad granular e individual
+        // Extraemos la pregunta para obtener su habilidad granular e individual
         var question = learningQueryService.handle(new GetQuestionByIdQuery(questionId))
                 .orElseThrow(() -> new IllegalArgumentException("Pregunta no encontrada para tracking de IA"));
 
         var topic = learningQueryService.handle(new GetTopicByQuestionIdQuery(questionId));
-
         Integer activeSkillId = question.getDktSkillId();
 
         if (activeSkillId != null) {
@@ -103,7 +103,7 @@ public class AssessmentEventsHandler {
             var payload = new SolicitudPrediccionDto(
                     userId.toString(),
                     secuenciaReal,
-                    activeSkillId, // <-- Cambiado de topic.getDktSkillId() a activeSkillId
+                    activeSkillId,
                     diasInactividad
             );
 
@@ -113,17 +113,34 @@ public class AssessmentEventsHandler {
 
             if (respuesta != null) {
                 Float nuevaProbabilidad = respuesta.probabilidad_final_dmma().floatValue();
+                String nivelRecomendado = respuesta.nivel_recomendado(); // 🔥 Capturamos el String de la IA [Nivel 1, 2 o 3]
 
-                // Mantenemos el almacenamiento de la predicción acoplado al Tema principal
-                // para que el mapa de carreteras pueda renderizar el "Nivel Sugerido" (Fácil, Medio, Avanzado)
+                UUID recommendedLessonId = null;
+
+                // 🔥 2. INTERCEPTOR DE CRISIS PEDAGÓGICA (SIDE QUEST TRIGGER)
+                if ("Nivel 1 (Repaso / Fácil)".equalsIgnoreCase(nivelRecomendado)) {
+                    System.out.println("⚠️ [SIDE QUEST] Crisis de retención detectada para la habilidad: " + activeSkillId + ". Generando misión de reforzamiento...");
+
+                    // Ejecutamos el Query aleatorio que creamos en el paso anterior (Limitado a 3 preguntas de tipo QUIZ)
+                    var preguntasRefuerzo = learningQueryService.handle(new GetSideQuestQuestionsBySkillQuery(activeSkillId, 3));
+
+                    if (!preguntasRefuerzo.isEmpty()) {
+                        // Extraemos la lección de origen de estas preguntas para activar el flag en el mapa
+                        recommendedLessonId = preguntasRefuerzo.get(0).getLesson().getId();
+                        System.out.println("🎯 [SIDE QUEST] Misión asociada exitosamente a la lección ID: " + recommendedLessonId);
+                    }
+                }
+
+                // 3. Persistimos los resultados cruzados en PostgreSQL
                 var prediccionExistente = mlPredictionRepository.findByUserIdAndTopicId(userId, topic.getId());
 
                 if (prediccionExistente.isPresent()) {
                     var prediccion = prediccionExistente.get();
-                    prediccion.updatePrediction(nuevaProbabilidad, null);
+                    // Actualizamos la nota predictiva e inyectamos el ID de la lección si hubo Side Quest (o null si aprobó)
+                    prediccion.updatePrediction(nuevaProbabilidad, recommendedLessonId);
                     mlPredictionRepository.save(prediccion);
                 } else {
-                    var nuevaPrediccion = new MlPrediction(userId, topic.getId(), nuevaProbabilidad, null);
+                    var nuevaPrediccion = new MlPrediction(userId, topic.getId(), nuevaProbabilidad, recommendedLessonId);
                     mlPredictionRepository.save(nuevaPrediccion);
                 }
             }
