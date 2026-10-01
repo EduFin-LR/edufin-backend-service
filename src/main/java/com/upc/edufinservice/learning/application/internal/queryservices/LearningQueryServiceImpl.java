@@ -11,10 +11,7 @@ import com.upc.edufinservice.learning.domain.services.LearningQueryService;
 import com.upc.edufinservice.learning.infrastructure.persistence.jpa.repositories.*;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class LearningQueryServiceImpl implements LearningQueryService {
@@ -69,26 +66,39 @@ public class LearningQueryServiceImpl implements LearningQueryService {
 
    @Override
     public List<Question> handle(GetRandomQuestionsQuery query) {
-       // 1. Obtenemos la lista de temas ordenados por su orden oficial (Topic 1, Topic 2...)
+       // 1. Validamos el límite solicitado (fallback seguro de 10 si viene nulo o no positivo)
+       int targetLimit = (query != null && query.limit() > 0) ? query.limit() : 10;
+
+       // 2. Obtenemos todos los temas activos ordenados
        List<Topic> topics = topicRepository.findAllByOrderByTopicOrderAsc();
 
-       // Control de seguridad por si la base de datos no está poblada completamente
-       if (topics.size() < 2) {
-           return questionRepository.findRandomQuestions(query.limit());
+       // 3. Validamos que no este vacio topics
+       if (topics.isEmpty()) {
+           throw new IllegalStateException("No existen temas registrados en el sistema para construir la evaluación diagnóstica.");
        }
 
-       // 2. Extraemos los identificadores únicos del Tema 1 y Tema 2
-       UUID topic1Id = topics.get(0).getId();
-       UUID topic2Id = topics.get(1).getId();
+       int totalTopics = topics.size();
 
-       // 3. Jalamos exactamente 5 preguntas aleatorias de cada competencia
-       List<Question> topic1Questions = questionRepository.findRandomQuestionsByTopic(topic1Id, 5);
-       List<Question> topic2Questions = questionRepository.findRandomQuestionsByTopic(topic2Id, 5);
+       // 4. Algoritmo de partición equitativa (Cociente y Residuo)
+       int baseQuestionsPerTopic = targetLimit / totalTopics;
+       int residuo = targetLimit % totalTopics;
 
-       // 4. Consolidamos ambos bloques en una sola lista balanceada de 10 ejercicios
        List<Question> balancedDiagnostic = new ArrayList<>();
-       balancedDiagnostic.addAll(topic1Questions);
-       balancedDiagnostic.addAll(topic2Questions);
+
+       // 5. Extracción proporcional por cada tema disponible
+       for (int i = 0; i < totalTopics; i++) {
+           // Los primeros 'residuo' temas absorben 1 pregunta adicional para completar exactamente el targetLimit
+           int quotaForThisTopic = baseQuestionsPerTopic + (i < residuo ? 1 : 0);
+
+           if (quotaForThisTopic > 0) {
+               UUID topicId = topics.get(i).getId();
+               List<Question> questions = questionRepository.findRandomQuestionsByTopic(topicId, quotaForThisTopic);
+               balancedDiagnostic.addAll(questions);
+           }
+       }
+
+       // 6. Se intercala las preguntas
+       Collections.shuffle(balancedDiagnostic);
 
        return balancedDiagnostic;
    }
