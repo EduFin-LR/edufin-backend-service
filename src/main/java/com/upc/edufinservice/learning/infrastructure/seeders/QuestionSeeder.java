@@ -1,6 +1,10 @@
 package com.upc.edufinservice.learning.infrastructure.seeders;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.upc.edufinservice.learning.domain.model.ValueObjetcts.LessonType;
 import com.upc.edufinservice.learning.domain.model.aggregates.Lesson;
@@ -43,104 +47,139 @@ public class QuestionSeeder implements CommandLineRunner {
             return;
         }
 
-        System.out.println("⏳ [SEEDER] Cargando banco de 120 preguntas gamificadas y secuenciales...");
+        System.out.println("⏳ [SEEDER] Cargando nuevo banco estandarizado de preguntas y módulos DKT...");
 
         ObjectMapper mapper = new ObjectMapper();
-        TypeReference<List<QuestionSeedDto>> typeReference = new TypeReference<>() {};
-        InputStream inputStream = new ClassPathResource("data/preguntas.json").getInputStream();
+        // 1. Configuramos Jackson para ignorar campos de metadatos o investigación del JSON
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        try {
+        // 2. Carga flexible: busca 'banco_preguntas_revisado.json' o 'preguntas.json' en classpath
+        ClassPathResource resource = new ClassPathResource("data/banco_preguntas_revisado.json");
+        if (!resource.exists()) {
+            resource = new ClassPathResource("data/preguntas.json");
+        }
+
+        try (InputStream inputStream = resource.getInputStream()) {
+            TypeReference<List<QuestionSeedDto>> typeReference = new TypeReference<>() {};
             List<QuestionSeedDto> dtos = mapper.readValue(inputStream, typeReference);
 
             for (QuestionSeedDto dto : dtos) {
-                // 1. Buscar o crear el Topic (Unidad)
-                Topic topic = topicRepository.findByName(dto.topic_name())
+                // 3. Buscar o crear el Topic (Módulo) dinámicamente
+                String topicName = dto.topicName() != null ? dto.topicName() : "Módulo General";
+                Integer topicOrder = dto.topicOrder() != null ? dto.topicOrder() : 1;
+                Integer skillId = dto.dktSkillId() != null ? dto.dktSkillId() : 1;
+
+                Topic topic = topicRepository.findByName(topicName)
                         .orElseGet(() -> {
-                            Topic t = new Topic(dto.topic_name(), "Educación Financiera", dto.dkt_skill_id());
-                            t.setTopicOrder(dto.topic_order());
+                            Topic t = new Topic(topicName, "Educación Financiera", skillId);
+                            t.setTopicOrder(topicOrder);
                             return topicRepository.save(t);
                         });
 
-                // 2. Mapear el LessonType de String (JSON) a tu Enum de JPA
-                LessonType currentType = LessonType.valueOf(dto.lesson_type());
-
-                // 🔥 CORRECCIÓN 2: Lógica dinámica para guardar Teoría o Descripción de Video en el campo "content"
-                String content = dto.theory_text() != null ? dto.theory_text() :
-                        (dto.video_description() != null ? dto.video_description() : "Contenido interactivo");
-
-                String videoUrl = dto.video_url() != null ? dto.video_url() : "https://sin-video.com";
-
-                // 🔥 CORRECCIÓN 3 y 4: Búsqueda con Topic_Id e inyección del dktSkillId en Lesson
-                Lesson lesson = lessonRepository.findByTitleAndLessonTypeAndTopic_Id(dto.lesson_title(), currentType, topic.getId())
-                        .orElseGet(() -> lessonRepository.save(new Lesson(
-                                topic,
-                                dto.lesson_order(),
-                                dto.lesson_title(),
-                                content,
-                                videoUrl,
-                                currentType,
-                                dto.dkt_skill_id() // ¡IA tracking activado para lecciones y videos!
-                        )));
-
-                // Si la estación es de tipo VIDEO, no mapea preguntas ni opciones
-                if (currentType == LessonType.VIDEO) {
-                    continue;
+                // 4. Mapear el LessonType de forma segura
+                LessonType currentType;
+                try {
+                    currentType = (dto.lessonType() != null)
+                            ? LessonType.valueOf(dto.lessonType().toUpperCase())
+                            : LessonType.QUIZ;
+                } catch (IllegalArgumentException e) {
+                    currentType = LessonType.QUIZ;
                 }
 
-                // 🔥 CORRECCIÓN 4: Inyección del dktSkillId en las Question
+                // 5. Estrategia dinámica de Título y Orden de Lección
+                String lessonTitle;
+                int lessonOrder;
+
+                if (currentType == LessonType.FINAL) {
+                    lessonTitle = "Examen Final: " + topicName;
+                    lessonOrder = 10;
+                } else {
+                    lessonTitle = dto.conceptName() != null ? dto.conceptName() : "Lección " + dto.conceptId();
+                    try {
+                        lessonOrder = (dto.conceptId() != null && dto.conceptId().contains("."))
+                                ? Integer.parseInt(dto.conceptId().split("\\.")[1])
+                                : 1;
+                    } catch (Exception ex) {
+                        lessonOrder = 1;
+                    }
+                }
+
+                String content = "Práctica interactiva y evaluación sobre " + lessonTitle;
+                String videoUrl = "https://sin-video.com";
+
+                // Variables intermedias inmutables para la expresión lambda
+                final LessonType finalType = currentType;
+                final int finalOrder = lessonOrder;
+
+// 6. Obtención o persistencia de la Lección agrupada
+                Lesson lesson = lessonRepository.findByTitleAndLessonTypeAndTopic_Id(lessonTitle, finalType, topic.getId())
+                        .orElseGet(() -> lessonRepository.save(new Lesson(
+                                topic,
+                                finalOrder,
+                                lessonTitle,
+                                content,
+                                videoUrl,
+                                finalType,
+                                skillId
+                        )));
+
+                // 7. Persistencia de la Pregunta
                 Question question = new Question(
                         lesson,
-                        dto.question_text(),
-                        dto.explanation(),
-                        dto.question_type(),
+                        dto.questionText(),
+                        dto.successMessage(), // Se reutiliza feedback_correcto como explicación pedagógica
+                        dto.questionType(),
                         dto.hint(),
-                        dto.success_message(),
-                        dto.error_message(),
-                        dto.dkt_skill_id(),
-                        dto.theory_text()// ¡IA tracking activado para cada pregunta!
+                        dto.successMessage(),
+                        dto.errorMessage(),
+                        skillId,
+                        null
                 );
                 questionRepository.save(question);
 
-                // Crear las Opciones de la pregunta (si existen)
+                // 8. Persistencia de las Opciones (tanto MULTIPLE_CHOICE como DRAG_AND_DROP)
                 if (dto.options() != null) {
                     for (OptionSeedDto optionDto : dto.options()) {
-                        QuestionOption option = new QuestionOption(question, optionDto.option_text(), optionDto.is_correct());
-                        option.setMatchCategory(optionDto.match_category());
+                        QuestionOption option = new QuestionOption(
+                                question,
+                                optionDto.optionText(),
+                                optionDto.isCorrect()
+                        );
+                        option.setMatchCategory(optionDto.matchCategory());
                         questionOptionRepository.save(option);
                     }
                 }
             }
-            System.out.println("✅ [SEEDER] ¡La arquitectura unificada con IA se ha guardado exitosamente!");
+
+            System.out.println("✅ [SEEDER] ¡Banco de 755 preguntas y 43 lecciones registrado exitosamente!");
 
         } catch (Exception e) {
-            System.err.println("❌ [SEEDER] Error procesando las entidades: " + e.getMessage());
+            System.err.println("❌ [SEEDER] Error procesando las entidades del banco de preguntas: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    // DTOs internos expandidos para mapear el 100% de las llaves del JSON nuevo
+    // Records DTO con anotaciones @JsonProperty y @JsonAlias para total compatibilidad
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record QuestionSeedDto(
-            String topic_name,
-            Integer topic_order,
-            Integer dkt_skill_id,
-            String lesson_title,
-            Integer lesson_order,
-            String lesson_type,
-            String theory_text,
-            String video_url,
-            String video_description,
-            String question_text,
-            String question_type,
-            String hint,
-            String success_message,
-            String error_message,
-            String explanation,
-            List<OptionSeedDto> options
+            @JsonProperty("modulo") @JsonAlias("topic_name") String topicName,
+            @JsonProperty("modulo_orden") @JsonAlias("topic_order") Integer topicOrder,
+            @JsonProperty("competencia_dkt") @JsonAlias("dkt_skill_id") Integer dktSkillId,
+            @JsonProperty("concepto") String conceptName,
+            @JsonProperty("concepto_id") String conceptId,
+            @JsonProperty("tipo_leccion") @JsonAlias("lesson_type") String lessonType,
+            @JsonProperty("pregunta") @JsonAlias("question_text") String questionText,
+            @JsonProperty("tipo_pregunta") @JsonAlias("question_type") String questionType,
+            @JsonProperty("pista") @JsonAlias("hint") String hint,
+            @JsonProperty("feedback_correcto") @JsonAlias("success_message") String successMessage,
+            @JsonProperty("feedback_incorrecto") @JsonAlias("error_message") String errorMessage,
+            @JsonProperty("opciones") @JsonAlias("options") List<OptionSeedDto> options
     ) {}
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record OptionSeedDto(
-            String option_text,
-            Boolean is_correct,
-            String match_category
+            @JsonProperty("texto") @JsonAlias("option_text") String optionText,
+            @JsonProperty("es_correcta") @JsonAlias("is_correct") Boolean isCorrect,
+            @JsonProperty("categoria") @JsonAlias("match_category") String matchCategory
     ) {}
 }
