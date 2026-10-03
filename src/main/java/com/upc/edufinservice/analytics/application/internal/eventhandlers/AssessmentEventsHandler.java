@@ -68,7 +68,7 @@ public class AssessmentEventsHandler {
                 .orElseThrow(() -> new IllegalArgumentException("Pregunta no encontrada para tracking de IA"));
 
         var topic = learningQueryService.handle(new GetTopicByQuestionIdQuery(questionId));
-        Integer activeSkillId = question.getDktSkillId();
+        Integer activeSkillId = question.getSkill().getId();
 
         if (activeSkillId != null) {
 

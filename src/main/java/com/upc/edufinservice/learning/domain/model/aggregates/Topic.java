@@ -1,11 +1,16 @@
 package com.upc.edufinservice.learning.domain.model.aggregates;
 
-import jakarta.persistence.*;
+import java.util.UUID;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.UUID;
 
 @Entity
 @Table(name = "topics")
@@ -27,13 +32,8 @@ public class Topic {
     @Column(length = 50)
     private String category;
 
-    // Esto es para el servicio IA
-    @Column(name = "dkt_skill_id")
-    private Integer dktSkillId;
-
-    public Topic(String name, String category, Integer dktSkillId) {
+    public Topic(String name, String category) {
         this.name = name;
         this.category = category;
-        this.dktSkillId = dktSkillId;
     }
 }

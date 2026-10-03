@@ -59,7 +59,7 @@ public class SideQuestController {
             return ResponseEntity.ok(new SideQuestResource(false, "Lección sin banco de preguntas disponible.", new ArrayList<>()));
         }
 
-        Integer skillIdEnCrisis = preguntasDeLaLeccion.get(0).getDktSkillId();
+        Integer skillIdEnCrisis = preguntasDeLaLeccion.get(0).getSkill().getId();
 
         // 3. Invocamos nuestro query aleatorio de reforzamiento (Jala 3 preguntas de tipo QUIZ al azar)
         var preguntasRefuerzo = learningQueryService.handle(new GetSideQuestQuestionsBySkillQuery(skillIdEnCrisis, 3));
@@ -80,7 +80,7 @@ public class SideQuestController {
                     question.getHint(),
                     question.getSuccessMessage(),
                     question.getErrorMessage(),
-                    question.getDktSkillId(),
+                    question.getSkill().getId(),
                     question.getTheoryText(),
                     optionResources
             );

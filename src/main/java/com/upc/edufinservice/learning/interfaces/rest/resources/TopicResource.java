@@ -6,7 +6,6 @@ public record TopicResource(
         UUID id,
         String name,
         String category,
-        Integer dktSkillId,
         int completedLessons, // Nuevo
         int totalLessons,     // Nuevo
         String status         // Nuevo: "PENDING", "IN_PROGRESS", "COMPLETED"

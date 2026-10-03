@@ -1,6 +1,7 @@
 package com.upc.edufinservice.learning.domain.model.aggregates;
 
 import com.upc.edufinservice.learning.domain.model.ValueObjetcts.LessonType;
+import com.upc.edufinservice.learning.domain.model.entities.Skill;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,40 +20,45 @@ public class Lesson {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // Relación fuerte: Muchas lecciones pueden pertenecer a un solo Tema.
-    // Usamos LAZY para que Spring no haga consultas SQL gigantescas innecesarias.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "topic_id", nullable = false)
     private Topic topic;
 
-    @Column(name="lesson_order", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "skill_id")
+    private Skill skill;
+
+    @Column(name = "lesson_order", nullable = false)
     private Integer lessonOrder;
 
     @Column(nullable = false, length = 200)
     private String title;
 
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "video_url", columnDefinition = "text")
+    @Column(name = "video_url", columnDefinition = "TEXT")
     private String videoUrl;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "lesson_type", nullable = false, length = 50)
     private LessonType lessonType;
 
-    //NUEVO: Identificador de la habilidad para el rastreo pasivo de la IA
-    @Column(name = "dkt_skill_id")
-    private Integer dktSkillId;
-
-    public Lesson(Topic topic, Integer lessonOrder, String title, String content,
-                  String videoUrl, LessonType lessonType, Integer dktSkillId) {
+    public Lesson(
+            Topic topic,
+            Skill skill,
+            Integer lessonOrder,
+            String title,
+            String content,
+            String videoUrl,
+            LessonType lessonType
+    ) {
         this.topic = topic;
+        this.skill = skill;
         this.lessonOrder = lessonOrder;
         this.title = title;
         this.content = content;
         this.videoUrl = videoUrl;
         this.lessonType = lessonType;
-        this.dktSkillId = dktSkillId;
     }
 }

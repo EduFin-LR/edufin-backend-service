@@ -27,7 +27,7 @@ public class QuestionResourceFromAggregateAssembler {
                 question.getHint(),
                 question.getSuccessMessage(),
                 question.getErrorMessage(),
-                question.getDktSkillId(),
+                question.getSkill().getId(),
                 question.getTheoryText(),//NUEVO: Extraemos el ID de la entidad
                 optionResources
         );
