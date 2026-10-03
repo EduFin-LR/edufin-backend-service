@@ -50,6 +50,14 @@ public class LearningQueryServiceImpl implements LearningQueryService {
     }
 
     @Override
+    public List<Question> handle(GetRandomQuestionsByLessonIdQuery query) {
+        return questionRepository.findRandomQuestionsByLessonId(
+                query.lessonId(),
+                query.limit()
+        );
+    }
+
+    @Override
     public List<QuestionOption> handle(GetOptionsByQuestionIdQuery query) {
         return questionOptionRepository.findByQuestionId(query.questionId());
     }

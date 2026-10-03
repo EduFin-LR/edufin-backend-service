@@ -13,6 +13,8 @@ public interface LearningQueryService {
     List<Topic> handle(GetAllTopicsQuery query);
     List<Lesson> handle(GetLessonsByTopicIdQuery query);
     List<Question> handle(GetQuestionsByLessonIdQuery query);
+
+    List<Question> handle(GetRandomQuestionsByLessonIdQuery query);
     List<QuestionOption> handle(GetOptionsByQuestionIdQuery query);
 
     // Agrega este método a la interfaz existente:
@@ -26,6 +28,5 @@ public interface LearningQueryService {
 
     List<Question> handle(GetSideQuestQuestionsBySkillQuery query);
 
-    //nuevo
     List<Question> handle(GetQuizQuestionsBySkillQuery query);
 }
