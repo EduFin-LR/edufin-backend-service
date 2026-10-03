@@ -9,4 +9,6 @@ public interface AssessmentQueryService {
     String getLessonStatus(UUID userId, UUID lessonId, boolean isFirstLessonOfApp);
 
     boolean hasCompletedDiagnostic(UUID userId);
+
+    boolean hasPassedTopicFinal(UUID userId, UUID topicId);
 }

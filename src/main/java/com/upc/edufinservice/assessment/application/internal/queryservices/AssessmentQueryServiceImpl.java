@@ -3,6 +3,7 @@ package com.upc.edufinservice.assessment.application.internal.queryservices;
 import com.upc.edufinservice.assessment.domain.services.AssessmentQueryService;
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.DiagnosticResultRepository;
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.UserLessonProgressRepository;
+import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.TopicFinalResultRepository;
 import com.upc.edufinservice.learning.domain.model.ValueObjetcts.ProgressStatus;
 import org.springframework.stereotype.Service;
 
@@ -14,13 +15,16 @@ public class AssessmentQueryServiceImpl implements AssessmentQueryService {
 
     private final UserLessonProgressRepository _userLessonProgressRepository;
     private final DiagnosticResultRepository _diagnosticResultRepository;
+    private final TopicFinalResultRepository _topicFinalResultRepository;
 
     public AssessmentQueryServiceImpl(
             UserLessonProgressRepository userLessonProgressRepository,
-            DiagnosticResultRepository diagnosticResultRepository
+            DiagnosticResultRepository diagnosticResultRepository,
+            TopicFinalResultRepository topicFinalResultRepository
     ) {
         _userLessonProgressRepository = userLessonProgressRepository;
         _diagnosticResultRepository = diagnosticResultRepository;
+        _topicFinalResultRepository = topicFinalResultRepository;
     }
 
     @Override
@@ -40,5 +44,17 @@ public class AssessmentQueryServiceImpl implements AssessmentQueryService {
     public boolean hasCompletedDiagnostic(UUID userId) {
         // Retorna true si ya existe una fila de resultados para el estudiante, false si no
         return _diagnosticResultRepository.findByUserId(userId).isPresent();
+    }
+
+    @Override
+    public boolean hasPassedTopicFinal(
+            UUID userId,
+            UUID topicId
+    ) {
+        return _topicFinalResultRepository
+                .existsByUserIdAndTopicIdAndPassedTrue(
+                        userId,
+                        topicId
+                );
     }
 }

@@ -1,6 +1,7 @@
 package com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories;
 
 import com.upc.edufinservice.assessment.domain.model.aggregates.QuestionAttempt;
+import com.upc.edufinservice.analytics.domain.model.entities.InteractionType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,4 +15,10 @@ public interface QuestionAttemptRepository extends JpaRepository<QuestionAttempt
     List<QuestionAttempt> findByUserId(UUID userId);
 
     List<QuestionAttempt> findByUserIdAndQuestionId(UUID userId, UUID questionId);
+
+    List<QuestionAttempt> findByUserIdAndQuestionIdAndInteractionType(
+            UUID userId,
+            UUID questionId,
+            InteractionType interactionType
+    );
 }

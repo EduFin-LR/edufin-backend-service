@@ -78,7 +78,16 @@ public class TopicsController {
 
             if (isTopicAvailable) {
                 if (totalLessons > 0 && completedLessons == totalLessons) {
-                    topicStatus = ProgressStatus.COMPLETED.name();
+                    boolean finalPassed =
+                            assessmentQueryService.hasPassedTopicFinal(
+                                    safeUserId,
+                                    t.getId()
+                            );
+
+                    topicStatus = finalPassed
+                            ? ProgressStatus.COMPLETED.name()
+                            : ProgressStatus.IN_PROGRESS.name();
+
                 } else if (completedLessons > 0) {
                     topicStatus = ProgressStatus.IN_PROGRESS.name();
                 } else {
