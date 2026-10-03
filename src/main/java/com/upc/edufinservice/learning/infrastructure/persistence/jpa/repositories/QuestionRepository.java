@@ -59,4 +59,17 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
             @Param("limit") int limit
     );
 
+
+    /**
+     * Obtiene solamente N preguntas aleatorias de una lección.
+     * La limitación se hace directamente en PostgreSQL.
+     */
+    @Query(value = "SELECT q.* FROM questions q " +
+            "WHERE q.lesson_id = :lessonId " +
+            "ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+    List<Question> findRandomQuestionsByLessonId(
+            @Param("lessonId") UUID lessonId,
+            @Param("limit") int limit
+    );
+
 }

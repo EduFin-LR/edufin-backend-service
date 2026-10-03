@@ -6,7 +6,7 @@ import com.upc.edufinservice.analytics.domain.services.MasteryService;
 import com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositories.StudentInteractionRepository;
 import com.upc.edufinservice.learning.domain.model.ValueObjetcts.LessonType;
 import com.upc.edufinservice.learning.domain.model.aggregates.Question;
-import com.upc.edufinservice.learning.domain.model.queries.GetQuestionsByLessonIdQuery;
+import com.upc.edufinservice.learning.domain.model.queries.GetRandomQuestionsByLessonIdQuery;
 import com.upc.edufinservice.learning.domain.services.LearningQueryService;
 import org.springframework.stereotype.Service;
 
@@ -45,20 +45,26 @@ public class AdaptiveQuizService {
             UUID userId,
             UUID lessonId
     ) {
-        List<Question> lessonQuestions =
-                new ArrayList<>(
-                        learningQueryService.handle(
-                                new GetQuestionsByLessonIdQuery(lessonId)
+
+        /*
+         * 1. Traemos SOLO una pregunta para validar la lección y conocer
+         *    su skill. Ya no cargamos todo el banco de preguntas.
+         */
+        List<Question> sampleQuestions =
+                learningQueryService.handle(
+                        new GetRandomQuestionsByLessonIdQuery(
+                                lessonId,
+                                1
                         )
                 );
 
-        if (lessonQuestions.isEmpty()) {
+        if (sampleQuestions.isEmpty()) {
             throw new IllegalArgumentException(
                     "La lección no tiene preguntas disponibles."
             );
         }
 
-        var lesson = lessonQuestions.get(0).getLesson();
+        var lesson = sampleQuestions.get(0).getLesson();
 
         if (lesson.getLessonType() != LessonType.QUIZ) {
             throw new IllegalArgumentException(
@@ -77,6 +83,10 @@ public class AdaptiveQuizService {
             );
         }
 
+        /*
+         * 2. Recuperar el snapshot actual del usuario y las skills
+         *    que ya han sido observadas.
+         */
         Map<String, Double> mastery =
                 masteryService.getMasterySnapshot(userId);
 
@@ -86,8 +96,14 @@ public class AdaptiveQuizService {
                                 .findDistinctSkillIdsByUserId(userId)
                 );
 
+        /*
+         * No usamos la skill actual como refuerzo dentro de su propio quiz.
+         */
         Set<Integer> excludedSkillIds = Set.of(currentSkillId);
 
+        /*
+         * 3. Intentamos conseguir hasta 2 preguntas adaptativas.
+         */
         List<ReinforcementQuestionSelection> reinforcementSelections =
                 adaptiveReinforcementService.selectReinforcementQuestions(
                         mastery,
@@ -97,25 +113,44 @@ public class AdaptiveQuizService {
                 );
 
         int reinforcementCount = reinforcementSelections.size();
-        int standardTarget = TOTAL_QUESTIONS - reinforcementCount;
 
-        Collections.shuffle(lessonQuestions);
+        /*
+         * Si conseguimos:
+         * 0 refuerzos -> pedimos 10 normales
+         * 1 refuerzo  -> pedimos 9 normales
+         * 2 refuerzos -> pedimos 8 normales
+         */
+        int standardTarget =
+                TOTAL_QUESTIONS - reinforcementCount;
+
+        /*
+         * 4. La BD devuelve SOLO la cantidad de preguntas normales
+         *    realmente necesaria.
+         */
+        List<Question> standardQuestions =
+                learningQueryService.handle(
+                        new GetRandomQuestionsByLessonIdQuery(
+                                lessonId,
+                                standardTarget
+                        )
+                );
 
         List<AdaptiveQuizQuestionSelection> selections =
                 new ArrayList<>();
 
-        lessonQuestions.stream()
-                .limit(standardTarget)
-                .forEach(question ->
-                        selections.add(
-                                new AdaptiveQuizQuestionSelection(
-                                        question,
-                                        InteractionType.QUIZ,
-                                        SelectionReason.STANDARD
-                                )
+        standardQuestions.forEach(question ->
+                selections.add(
+                        new AdaptiveQuizQuestionSelection(
+                                question,
+                                InteractionType.QUIZ,
+                                SelectionReason.STANDARD
                         )
-                );
+                )
+        );
 
+        /*
+         * 5. Añadir los refuerzos elegidos por bajo mastery.
+         */
         reinforcementSelections.forEach(selection ->
                 selections.add(
                         new AdaptiveQuizQuestionSelection(
@@ -126,6 +161,10 @@ public class AdaptiveQuizService {
                 )
         );
 
+        /*
+         * Aquí sí es correcto mezclar en memoria:
+         * como máximo tenemos 10 preguntas, no todo el banco.
+         */
         Collections.shuffle(selections);
 
         int actualReinforcementCount =
