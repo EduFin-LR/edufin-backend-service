@@ -139,4 +139,12 @@ public class LearningQueryServiceImpl implements LearningQueryService {
                 query.limit()
         );
     }
+
+    @Override
+    public List<Question> handle(GetRandomQuizQuestionsByTopicQuery query) {
+        return questionRepository.findRandomQuizQuestionsByTopic(
+                query.topicId(),
+                query.limit()
+        );
+    }
 }
