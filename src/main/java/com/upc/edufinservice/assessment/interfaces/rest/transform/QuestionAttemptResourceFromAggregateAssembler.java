@@ -4,15 +4,20 @@ import com.upc.edufinservice.assessment.domain.model.aggregates.QuestionAttempt;
 import com.upc.edufinservice.assessment.interfaces.rest.resources.QuestionAttemptResource;
 
 public class QuestionAttemptResourceFromAggregateAssembler {
-    public static QuestionAttemptResource toResourceFromAggregate(QuestionAttempt attempt) {
+
+    public static QuestionAttemptResource toResourceFromAggregate(
+            QuestionAttempt attempt
+    ) {
         return new QuestionAttemptResource(
                 attempt.getId(),
                 attempt.getUserId(),
                 attempt.getQuestionId(),
                 attempt.getSelectedOptionId(),
-                attempt.getSelectedMatchCategory(), // ¡Inyectado para la respuesta de React!
+                attempt.getSelectedMatchCategory(),
                 attempt.getIsCorrect(),
                 attempt.getTimeTakenSec(),
+                attempt.getInteractionType(),
+                attempt.getSelectionReason(),
                 attempt.getAttemptedAt()
         );
     }

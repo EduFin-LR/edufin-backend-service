@@ -103,7 +103,7 @@ public class TopicsController {
             }
 
             enrichedTopics.add(new TopicResource(
-                    t.getId(), t.getName(), t.getCategory(), t.getDktSkillId(),
+                    t.getId(), t.getName(), t.getCategory(),
                     completedLessons, totalLessons, topicStatus
             ));
         }
@@ -144,7 +144,7 @@ public class TopicsController {
                     l.getLessonOrder(),
                     l.getLessonType().name(),
                     status,
-                    l.getDktSkillId() // 🔥 NUEVO: Inyectamos el ID
+                    l.getSkill().getId() // 🔥 NUEVO: Inyectamos el ID
             ));
         }
 

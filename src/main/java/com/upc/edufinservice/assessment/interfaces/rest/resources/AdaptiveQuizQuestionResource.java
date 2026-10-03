@@ -1,13 +1,11 @@
-package com.upc.edufinservice.assessment.domain.model.events;
+package com.upc.edufinservice.assessment.interfaces.rest.resources;
 
 import com.upc.edufinservice.analytics.domain.model.entities.InteractionType;
 import com.upc.edufinservice.analytics.domain.model.entities.SelectionReason;
+import com.upc.edufinservice.learning.interfaces.rest.resources.QuestionResource;
 
-import java.util.UUID;
-
-public record QuestionAnsweredIncorrectlyEvent(
-        UUID userId,
-        UUID questionId,
+public record AdaptiveQuizQuestionResource(
+        QuestionResource question,
         InteractionType interactionType,
         SelectionReason selectionReason
 ) {}

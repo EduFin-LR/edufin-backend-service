@@ -75,7 +75,9 @@ public class DiagnosticCommandServiceImpl {
                     answer.selectedOptionId(),
                     answer.selectedMatchCategory(), // Registramos la caja si la hubo
                     isCorrect,
-                    answer.timeTakenSec() != null ? answer.timeTakenSec() : 0.0f
+                    answer.timeTakenSec() != null ? answer.timeTakenSec() : 0.0f,
+                    null, // interactionType: el diagnóstico/pre-test no entra a DKT-Forget
+                    null  // selectionReason: no aplica al diagnóstico
             );
             questionAttemptRepository.save(attempt);
         }

@@ -2,11 +2,29 @@ package com.upc.edufinservice.analytics.infrastructure.external.fastapi.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.time.Instant;
 import java.util.List;
 
 public record SolicitudPrediccionDto(
-        @JsonProperty("user_id") String user_id,
-        @JsonProperty("secuencia_interacciones") List<Integer> secuencia_interacciones,
-        @JsonProperty("habilidad_objetivo") Integer habilidad_objetivo,
-        @JsonProperty("dias_inactividad") Double dias_inactividad
-) {}
+
+        @JsonProperty("user_id")
+        String userId,
+
+        @JsonProperty("interactions")
+        List<InteraccionDto> interactions
+
+) {
+
+    public record InteraccionDto(
+
+            @JsonProperty("skill_id")
+            Integer skillId,
+
+            @JsonProperty("correct")
+            Boolean correct,
+
+            @JsonProperty("timestamp")
+            Instant timestamp
+
+    ) {}
+}

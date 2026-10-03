@@ -1,5 +1,7 @@
 package com.upc.edufinservice.learning.domain.model.aggregates;
 
+import com.upc.edufinservice.learning.domain.model.ValueObjetcts.QuestionDifficulty;
+import com.upc.edufinservice.learning.domain.model.entities.Skill;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,46 +20,60 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // Relación fuerte con Lesson
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lesson_id", nullable = false)
     private Lesson lesson;
 
-    @Column(name="question_type", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "skill_id", nullable = false)
+    private Skill skill;
+
+    @Column(name = "theory_text", columnDefinition = "text")
+    private String theoryText;
+
+    @Column(name = "question_type", nullable = false)
     private String questionType;
 
-    @Column(name="hint", columnDefinition = "TEXT")
+    @Column(name = "hint", columnDefinition = "TEXT")
     private String hint;
 
-    @Column(name="success_message", columnDefinition = "TEXT")
+    @Column(name = "success_message", columnDefinition = "TEXT")
     private String successMessage;
 
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
-    @Column(name = "question_text", columnDefinition = "text")
+    @Column(name = "question_text", columnDefinition = "TEXT")
     private String questionText;
 
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "TEXT")
     private String explanation;
 
-    @Column(name = "dkt_skill_id")
-    private Integer dktSkillId;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "difficulty", length = 30)
+    private QuestionDifficulty difficulty;
 
-    @Column(name = "theory_text", columnDefinition = "text")
-    private String theoryText;
-
-    public Question(Lesson lesson, String questionText, String explanation, String questionType,
-                    String hint, String successMessage, String errorMessage, Integer dktSkillId,
-                    String theoryText) {
+    public Question(
+            Lesson lesson,
+            Skill skill,
+            String questionText,
+            String explanation,
+            String questionType,
+            String hint,
+            String successMessage,
+            String errorMessage,
+            String theoryText,
+            QuestionDifficulty difficulty
+    ) {
         this.lesson = lesson;
+        this.skill = skill;
         this.questionText = questionText;
         this.explanation = explanation;
         this.questionType = questionType;
         this.hint = hint;
         this.successMessage = successMessage;
         this.errorMessage = errorMessage;
-        this.dktSkillId = dktSkillId;
-        this.theoryText = theoryText; // Almacena la teoría específica de esta diapositiva
+        this.theoryText = theoryText;
+        this.difficulty = difficulty;
     }
 }

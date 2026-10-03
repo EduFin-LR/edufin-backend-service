@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -26,15 +26,31 @@ public class StudentInteraction {
     private Integer dktSkillId;
 
     @Column(name = "is_correct", nullable = false)
-    private Integer isCorrect; // 1 para correcto, 0 para incorrecto
+    private Integer isCorrect; // 1 correcto, 0 incorrecto
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "interaction_type", nullable = false, length = 30)
+    private InteractionType interactionType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "selection_reason", nullable = false, length = 30)
+    private SelectionReason selectionReason;
 
     @Column(name = "interacted_at", nullable = false)
-    private LocalDateTime interactedAt;
+    private Instant interactedAt;
 
-    public StudentInteraction(UUID userId, Integer dktSkillId, Integer isCorrect) {
+    public StudentInteraction(
+            UUID userId,
+            Integer dktSkillId,
+            Integer isCorrect,
+            InteractionType interactionType,
+            SelectionReason selectionReason
+    ) {
         this.userId = userId;
         this.dktSkillId = dktSkillId;
         this.isCorrect = isCorrect;
-        this.interactedAt = LocalDateTime.now();
+        this.interactionType = interactionType;
+        this.selectionReason = selectionReason;
+        this.interactedAt = Instant.now();
     }
 }

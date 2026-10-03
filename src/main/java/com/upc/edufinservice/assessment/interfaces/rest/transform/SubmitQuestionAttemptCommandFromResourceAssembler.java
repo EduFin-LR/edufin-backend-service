@@ -9,14 +9,16 @@ public class SubmitQuestionAttemptCommandFromResourceAssembler {
 
     public static SubmitQuestionAttemptCommand toCommandFromResource(
             SubmitQuestionAttemptResource resource,
-            UUID safeUserId) {
-
+            UUID safeUserId
+    ) {
         return new SubmitQuestionAttemptCommand(
                 safeUserId,
                 resource.questionId(),
                 resource.selectedOptionId(),
-                resource.selectedMatchCategory(), // ¡Inyectado para Drag & Drop!
-                resource.timeTakenSec()
+                resource.selectedMatchCategory(),
+                resource.timeTakenSec(),
+                resource.interactionType(),
+                resource.selectionReason()
         );
     }
 }
