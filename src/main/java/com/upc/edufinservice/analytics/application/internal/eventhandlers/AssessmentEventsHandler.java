@@ -1,14 +1,13 @@
 package com.upc.edufinservice.analytics.application.internal.eventhandlers;
 
 import com.upc.edufinservice.analytics.domain.model.aggregates.ErrorPattern;
-import com.upc.edufinservice.analytics.domain.model.aggregates.MlPrediction;
 import com.upc.edufinservice.analytics.domain.model.entities.InteractionType;
 import com.upc.edufinservice.analytics.domain.model.entities.SelectionReason;
 import com.upc.edufinservice.analytics.domain.model.entities.StudentInteraction;
+import com.upc.edufinservice.analytics.domain.services.MasteryService;
 import com.upc.edufinservice.analytics.infrastructure.external.fastapi.FastAPIClient;
 import com.upc.edufinservice.analytics.infrastructure.external.fastapi.dto.SolicitudPrediccionDto;
 import com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositories.ErrorPatternRepository;
-import com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositories.MlPredictionRepository;
 import com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositories.StudentInteractionRepository;
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredCorrectlyEvent;
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredIncorrectlyEvent;
@@ -28,22 +27,22 @@ public class AssessmentEventsHandler {
 
     private final LearningQueryService learningQueryService;
     private final ErrorPatternRepository errorPatternRepository;
-    private final MlPredictionRepository mlPredictionRepository;
     private final StudentInteractionRepository interactionRepository;
     private final FastAPIClient fastApiClient;
+    private final MasteryService masteryService;
 
     public AssessmentEventsHandler(
             LearningQueryService learningQueryService,
             ErrorPatternRepository errorPatternRepository,
-            MlPredictionRepository mlPredictionRepository,
             StudentInteractionRepository interactionRepository,
-            FastAPIClient fastApiClient
+            FastAPIClient fastApiClient,
+            MasteryService masteryService
     ) {
         this.learningQueryService = learningQueryService;
         this.errorPatternRepository = errorPatternRepository;
-        this.mlPredictionRepository = mlPredictionRepository;
         this.interactionRepository = interactionRepository;
         this.fastApiClient = fastApiClient;
+        this.masteryService = masteryService;
     }
 
     @EventListener
@@ -97,7 +96,6 @@ public class AssessmentEventsHandler {
                             + "lessonType=" + lessonType
                             + ", questionId=" + questionId
             );
-
             return;
         }
 
@@ -111,29 +109,16 @@ public class AssessmentEventsHandler {
             return;
         }
 
-        /*
-         * 4. Tipo de interacción.
-         *
-         * REINFORCEMENT todavía se marcará explícitamente más adelante,
-         * cuando el flujo adaptativo sepa que una pregunta fue añadida como refuerzo.
-         */
+        // 4. Contexto inicial de la interacción.
         InteractionType interactionType =
                 lessonType == LessonType.FINAL
                         ? InteractionType.FINAL
                         : InteractionType.QUIZ;
 
-        /*
-         * 5. Razón de selección.
-         *
-         * Por ahora todo se registra como STANDARD.
-         * Cuando implementemos la selección adaptativa:
-         *
-         * - preguntas normales -> STANDARD
-         * - preguntas añadidas por bajo mastery -> LOW_MASTERY
-         */
+        // Más adelante el flujo adaptativo enviará LOW_MASTERY/REINFORCEMENT.
         SelectionReason selectionReason = SelectionReason.STANDARD;
 
-        // 6. Guardar interacción válida.
+        // 5. Guardar interacción válida.
         var currentInteraction = new StudentInteraction(
                 userId,
                 activeSkillId,
@@ -144,25 +129,22 @@ public class AssessmentEventsHandler {
 
         interactionRepository.save(currentInteraction);
 
-        // 7. Historial cronológico real del estudiante.
+        // 6. Historial cronológico del estudiante.
         var historial =
                 interactionRepository.findByUserIdOrderByInteractedAtAsc(userId);
 
-        // 8. Umbral mínimo antes de consultar el modelo.
+        // 7. No consultar DKT hasta tener suficiente evidencia.
         if (historial.size() < MIN_DKT_INTERACTIONS) {
-
             System.out.println(
                     "[DKT-FORGET] Usuario " + userId
                             + ": " + historial.size()
                             + "/" + MIN_DKT_INTERACTIONS
-                            + " interacciones válidas. "
-                            + "Todavía no se consulta el modelo."
+                            + " interacciones válidas."
             );
-
             return;
         }
 
-        // 9. Adaptar historial al contrato FastAPI.
+        // 8. Adaptar historial al contrato FastAPI.
         var interactions = historial.stream()
                 .map(interaction ->
                         new SolicitudPrediccionDto.InteraccionDto(
@@ -178,76 +160,35 @@ public class AssessmentEventsHandler {
                 interactions
         );
 
-        System.out.println(
-                "[DKT-FORGET] Enviando "
-                        + interactions.size()
-                        + " interacciones de usuario "
-                        + userId
-        );
-
-        // 10. Consultar DKT-Forget.
+        // 9. Consultar DKT-Forget.
         var respuesta = fastApiClient.obtenerPrediccion(payload);
 
         if (respuesta == null
                 || !Boolean.TRUE.equals(respuesta.modelReady())
-                || respuesta.mastery() == null) {
+                || respuesta.mastery() == null
+                || respuesta.mastery().isEmpty()) {
 
             System.out.println(
                     "[DKT-FORGET] Modelo no disponible. "
                             + "La interacción quedó registrada para el piloto."
             );
-
             return;
         }
 
-        // 11. Mastery correspondiente a la skill actual.
-        Double mastery = respuesta.mastery()
-                .get(String.valueOf(activeSkillId));
-
-        if (mastery == null) {
-
-            System.out.println(
-                    "[DKT-FORGET] FastAPI no devolvió mastery para skill "
-                            + activeSkillId
-            );
-
-            return;
-        }
-
-        Float nuevaProbabilidad = mastery.floatValue();
-
-        // 12. Persistir predicción actual.
-        var topic = learningQueryService.handle(
-                new GetTopicByQuestionIdQuery(questionId)
+        /*
+         * 10. Persistir el snapshot COMPLETO de mastery.
+         *
+         * FastAPI devuelve una probabilidad para cada una de las 30 skills.
+         * Ya no descartamos 29 probabilidades para conservar solo la skill actual.
+         */
+        masteryService.updateMasterySnapshot(
+                userId,
+                respuesta.mastery()
         );
 
-        var prediccionExistente =
-                mlPredictionRepository.findByUserIdAndTopicId(
-                        userId,
-                        topic.getId()
-                );
-
-        if (prediccionExistente.isPresent()) {
-
-            var prediccion = prediccionExistente.get();
-
-            prediccion.updatePrediction(
-                    nuevaProbabilidad,
-                    null
-            );
-
-            mlPredictionRepository.save(prediccion);
-
-        } else {
-
-            var nuevaPrediccion = new MlPrediction(
-                    userId,
-                    topic.getId(),
-                    nuevaProbabilidad,
-                    null
-            );
-
-            mlPredictionRepository.save(nuevaPrediccion);
-        }
+        System.out.println(
+                "[DKT-FORGET] Snapshot de mastery actualizado para usuario "
+                        + userId
+        );
     }
 }
