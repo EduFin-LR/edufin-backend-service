@@ -25,4 +25,7 @@ public interface LearningQueryService {
     Optional<Question> handle(GetQuestionByIdQuery query);
 
     List<Question> handle(GetSideQuestQuestionsBySkillQuery query);
+
+    //nuevo
+    List<Question> handle(GetQuizQuestionsBySkillQuery query);
 }

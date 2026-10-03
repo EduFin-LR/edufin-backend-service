@@ -17,7 +17,7 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
 
     // ESTE ERA EL ANTIGUO RANDOM
     // Consulta nativa en PostgreSQL para traer N preguntas al azar
-     @Query(value = "SELECT * FROM questions ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+    @Query(value = "SELECT * FROM questions ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
     List<Question> findRandomQuestions(@Param("limit") int limit);
 
 
@@ -34,7 +34,7 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
     // Filtra por la habilidad en crisis (dktSkillId) y el tipo de lección evaluativa (ej. 'QUIZ')
     @Query(value = "SELECT q.* FROM questions q " +
             "JOIN lessons l ON q.lesson_id = l.id " +
-            "WHERE q.dkt_skill_id = :dktSkillId " +
+            "WHERE q.skill_id = :dktSkillId " +
             "AND l.lesson_type = :lessonType " +
             "ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
     List<Question> findSideQuestQuestionsBySkillAndType(
@@ -42,4 +42,21 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
             @Param("lessonType") String lessonType,
             @Param("limit") int limit
     );
+
+    /**
+     * Consulta genérica para obtener preguntas QUIZ de una skill concreta.
+     * Usa questions.skill_id, que es la relación actual Question -> Skill.
+     *
+     * Esta consulta será la base para selección por bajo mastery.
+     */
+    @Query(value = "SELECT q.* FROM questions q " +
+            "JOIN lessons l ON q.lesson_id = l.id " +
+            "WHERE q.skill_id = :skillId " +
+            "AND l.lesson_type = 'QUIZ' " +
+            "ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+    List<Question> findRandomQuizQuestionsBySkill(
+            @Param("skillId") Integer skillId,
+            @Param("limit") int limit
+    );
+
 }

@@ -64,44 +64,44 @@ public class LearningQueryServiceImpl implements LearningQueryService {
         return question.getLesson().getTopic();
     }
 
-   @Override
+    @Override
     public List<Question> handle(GetRandomQuestionsQuery query) {
-       // 1. Validamos el límite solicitado (fallback seguro de 10 si viene nulo o no positivo)
-       int targetLimit = (query != null && query.limit() > 0) ? query.limit() : 10;
+        // 1. Validamos el límite solicitado (fallback seguro de 10 si viene nulo o no positivo)
+        int targetLimit = (query != null && query.limit() > 0) ? query.limit() : 10;
 
-       // 2. Obtenemos todos los temas activos ordenados
-       List<Topic> topics = topicRepository.findAllByOrderByTopicOrderAsc();
+        // 2. Obtenemos todos los temas activos ordenados
+        List<Topic> topics = topicRepository.findAllByOrderByTopicOrderAsc();
 
-       // 3. Validamos que no este vacio topics
-       if (topics.isEmpty()) {
-           throw new IllegalStateException("No existen temas registrados en el sistema para construir la evaluación diagnóstica.");
-       }
+        // 3. Validamos que no este vacio topics
+        if (topics.isEmpty()) {
+            throw new IllegalStateException("No existen temas registrados en el sistema para construir la evaluación diagnóstica.");
+        }
 
-       int totalTopics = topics.size();
+        int totalTopics = topics.size();
 
-       // 4. Algoritmo de partición equitativa (Cociente y Residuo)
-       int baseQuestionsPerTopic = targetLimit / totalTopics;
-       int residuo = targetLimit % totalTopics;
+        // 4. Algoritmo de partición equitativa (Cociente y Residuo)
+        int baseQuestionsPerTopic = targetLimit / totalTopics;
+        int residuo = targetLimit % totalTopics;
 
-       List<Question> balancedDiagnostic = new ArrayList<>();
+        List<Question> balancedDiagnostic = new ArrayList<>();
 
-       // 5. Extracción proporcional por cada tema disponible
-       for (int i = 0; i < totalTopics; i++) {
-           // Los primeros 'residuo' temas absorben 1 pregunta adicional para completar exactamente el targetLimit
-           int quotaForThisTopic = baseQuestionsPerTopic + (i < residuo ? 1 : 0);
+        // 5. Extracción proporcional por cada tema disponible
+        for (int i = 0; i < totalTopics; i++) {
+            // Los primeros 'residuo' temas absorben 1 pregunta adicional para completar exactamente el targetLimit
+            int quotaForThisTopic = baseQuestionsPerTopic + (i < residuo ? 1 : 0);
 
-           if (quotaForThisTopic > 0) {
-               UUID topicId = topics.get(i).getId();
-               List<Question> questions = questionRepository.findRandomQuestionsByTopic(topicId, quotaForThisTopic);
-               balancedDiagnostic.addAll(questions);
-           }
-       }
+            if (quotaForThisTopic > 0) {
+                UUID topicId = topics.get(i).getId();
+                List<Question> questions = questionRepository.findRandomQuestionsByTopic(topicId, quotaForThisTopic);
+                balancedDiagnostic.addAll(questions);
+            }
+        }
 
-       // 6. Se intercala las preguntas
-       Collections.shuffle(balancedDiagnostic);
+        // 6. Se intercala las preguntas
+        Collections.shuffle(balancedDiagnostic);
 
-       return balancedDiagnostic;
-   }
+        return balancedDiagnostic;
+    }
 
     @Override
     public Optional<Topic> handle(GetTopicByIdQuery query){
@@ -120,6 +120,14 @@ public class LearningQueryServiceImpl implements LearningQueryService {
         return questionRepository.findSideQuestQuestionsBySkillAndType(
                 query.dktSkillId(),
                 "QUIZ",
+                query.limit()
+        );
+    }
+
+    @Override
+    public List<Question> handle(GetQuizQuestionsBySkillQuery query) {
+        return questionRepository.findRandomQuizQuestionsBySkill(
+                query.skillId(),
                 query.limit()
         );
     }
