@@ -2,7 +2,7 @@ package com.upc.edufinservice.analytics.infrastructure.external.fastapi.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public record SolicitudPrediccionDto(
@@ -24,7 +24,7 @@ public record SolicitudPrediccionDto(
             Boolean correct,
 
             @JsonProperty("timestamp")
-            OffsetDateTime timestamp
+            Instant timestamp
 
     ) {}
 }

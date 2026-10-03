@@ -2,14 +2,17 @@ package com.upc.edufinservice.analytics.application.internal.eventhandlers;
 
 import com.upc.edufinservice.analytics.domain.model.aggregates.ErrorPattern;
 import com.upc.edufinservice.analytics.domain.model.aggregates.MlPrediction;
+import com.upc.edufinservice.analytics.domain.model.entities.InteractionType;
+import com.upc.edufinservice.analytics.domain.model.entities.SelectionReason;
 import com.upc.edufinservice.analytics.domain.model.entities.StudentInteraction;
+import com.upc.edufinservice.analytics.infrastructure.external.fastapi.FastAPIClient;
+import com.upc.edufinservice.analytics.infrastructure.external.fastapi.dto.SolicitudPrediccionDto;
 import com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositories.ErrorPatternRepository;
 import com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositories.MlPredictionRepository;
 import com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositories.StudentInteractionRepository;
-import com.upc.edufinservice.analytics.infrastructure.external.fastapi.FastAPIClient;
-import com.upc.edufinservice.analytics.infrastructure.external.fastapi.dto.SolicitudPrediccionDto;
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredCorrectlyEvent;
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredIncorrectlyEvent;
+import com.upc.edufinservice.learning.domain.model.ValueObjetcts.LessonType;
 import com.upc.edufinservice.learning.domain.model.queries.GetQuestionByIdQuery;
 import com.upc.edufinservice.learning.domain.model.queries.GetTopicByQuestionIdQuery;
 import com.upc.edufinservice.learning.domain.services.LearningQueryService;
@@ -18,21 +21,24 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-
 @Service
 public class AssessmentEventsHandler {
+
+    private static final int MIN_DKT_INTERACTIONS = 8;
 
     private final LearningQueryService learningQueryService;
     private final ErrorPatternRepository errorPatternRepository;
     private final MlPredictionRepository mlPredictionRepository;
-    private final StudentInteractionRepository interactionRepository; // Nueva bitácora
+    private final StudentInteractionRepository interactionRepository;
     private final FastAPIClient fastApiClient;
 
-    public AssessmentEventsHandler(LearningQueryService learningQueryService,
-                                   ErrorPatternRepository errorPatternRepository,
-                                   MlPredictionRepository mlPredictionRepository,
-                                   StudentInteractionRepository interactionRepository,
-                                   FastAPIClient fastApiClient) {
+    public AssessmentEventsHandler(
+            LearningQueryService learningQueryService,
+            ErrorPatternRepository errorPatternRepository,
+            MlPredictionRepository mlPredictionRepository,
+            StudentInteractionRepository interactionRepository,
+            FastAPIClient fastApiClient
+    ) {
         this.learningQueryService = learningQueryService;
         this.errorPatternRepository = errorPatternRepository;
         this.mlPredictionRepository = mlPredictionRepository;
@@ -47,11 +53,17 @@ public class AssessmentEventsHandler {
 
     @EventListener
     public void on(QuestionAnsweredIncorrectlyEvent event) {
-        // El patrón de errores macro (Alcancías) se mantiene a nivel de Tema (Topic)
-        var topic = learningQueryService.handle(new GetTopicByQuestionIdQuery(event.questionId()));
 
-        var errorPattern = errorPatternRepository.findByUserIdAndTopicId(event.userId(), topic.getId())
-                .orElseGet(() -> new ErrorPattern(event.userId(), topic.getId()));
+        var topic = learningQueryService.handle(
+                new GetTopicByQuestionIdQuery(event.questionId())
+        );
+
+        var errorPattern = errorPatternRepository
+                .findByUserIdAndTopicId(event.userId(), topic.getId())
+                .orElseGet(() -> new ErrorPattern(
+                        event.userId(),
+                        topic.getId()
+                ));
 
         errorPattern.incrementErrorCount();
         errorPatternRepository.save(errorPattern);
@@ -59,10 +71,13 @@ public class AssessmentEventsHandler {
         processInteraction(event.userId(), event.questionId(), 0);
     }
 
+    private void processInteraction(
+            UUID userId,
+            UUID questionId,
+            Integer isCorrect
+    ) {
 
-    private static final int MIN_DKT_INTERACTIONS = 8;
-    private void processInteraction(UUID userId, UUID questionId, Integer isCorrect) {
-        // Extraemos la pregunta para obtener su habilidad granular e individual
+        // 1. Recuperar la pregunta.
         var question = learningQueryService
                 .handle(new GetQuestionByIdQuery(questionId))
                 .orElseThrow(() ->
@@ -71,54 +86,93 @@ public class AssessmentEventsHandler {
                         )
                 );
 
-        Integer activeSkillId = question.getSkill().getId();
+        // 2. Solo QUIZ y FINAL participan en DKT-Forget.
+        LessonType lessonType = question.getLesson().getLessonType();
 
-        if (activeSkillId == null) {
-            return;
-        }
-
-        // 1. Guardamos la interacción real.
-        var currentInteraction = new StudentInteraction(
-                userId,
-                activeSkillId,
-                isCorrect
-        );
-
-        interactionRepository.save(currentInteraction);
-
-        // 2. Recuperamos el historial cronológico.
-        var historial =
-                interactionRepository.findByUserIdOrderByInteractedAtAsc(userId);
-
-        /*
-         * Durante el piloto simplemente acumulamos datos.
-         * No consultamos DKT hasta tener suficiente historial.
-         */
-        if (historial.size() < MIN_DKT_INTERACTIONS) {
+        if (lessonType != LessonType.QUIZ
+                && lessonType != LessonType.FINAL) {
 
             System.out.println(
-                    "[DKT-FORGET] Usuario " + userId
-                            + " tiene " + historial.size()
-                            + "/" + MIN_DKT_INTERACTIONS
-                            + " interacciones. Todavía no se consulta el modelo."
+                    "[DKT-FORGET] Interacción ignorada. "
+                            + "lessonType=" + lessonType
+                            + ", questionId=" + questionId
             );
 
             return;
         }
 
-        // 3. Transformamos nuestro historial al contrato nuevo de FastAPI.
+        // 3. Skill estable 1..30.
+        Integer activeSkillId = question.getSkill().getId();
+
+        if (activeSkillId == null) {
+            System.out.println(
+                    "[DKT-FORGET] Pregunta sin Skill. questionId=" + questionId
+            );
+            return;
+        }
+
+        /*
+         * 4. Tipo de interacción.
+         *
+         * REINFORCEMENT todavía se marcará explícitamente más adelante,
+         * cuando el flujo adaptativo sepa que una pregunta fue añadida como refuerzo.
+         */
+        InteractionType interactionType =
+                lessonType == LessonType.FINAL
+                        ? InteractionType.FINAL
+                        : InteractionType.QUIZ;
+
+        /*
+         * 5. Razón de selección.
+         *
+         * Por ahora todo se registra como STANDARD.
+         * Cuando implementemos la selección adaptativa:
+         *
+         * - preguntas normales -> STANDARD
+         * - preguntas añadidas por bajo mastery -> LOW_MASTERY
+         */
+        SelectionReason selectionReason = SelectionReason.STANDARD;
+
+        // 6. Guardar interacción válida.
+        var currentInteraction = new StudentInteraction(
+                userId,
+                activeSkillId,
+                isCorrect,
+                interactionType,
+                selectionReason
+        );
+
+        interactionRepository.save(currentInteraction);
+
+        // 7. Historial cronológico real del estudiante.
+        var historial =
+                interactionRepository.findByUserIdOrderByInteractedAtAsc(userId);
+
+        // 8. Umbral mínimo antes de consultar el modelo.
+        if (historial.size() < MIN_DKT_INTERACTIONS) {
+
+            System.out.println(
+                    "[DKT-FORGET] Usuario " + userId
+                            + ": " + historial.size()
+                            + "/" + MIN_DKT_INTERACTIONS
+                            + " interacciones válidas. "
+                            + "Todavía no se consulta el modelo."
+            );
+
+            return;
+        }
+
+        // 9. Adaptar historial al contrato FastAPI.
         var interactions = historial.stream()
                 .map(interaction ->
                         new SolicitudPrediccionDto.InteraccionDto(
                                 interaction.getDktSkillId(),
                                 interaction.getIsCorrect() == 1,
                                 interaction.getInteractedAt()
-                                        .atOffset(java.time.ZoneOffset.UTC)
                         )
                 )
                 .toList();
 
-        // 4. Request DKT-Forget.
         var payload = new SolicitudPrediccionDto(
                 userId.toString(),
                 interactions
@@ -131,15 +185,12 @@ public class AssessmentEventsHandler {
                         + userId
         );
 
-        /*
-         * Si todavía no existe checkpoint, FastAPI devuelve 503.
-         * FastAPIClient lo transforma en null.
-         */
+        // 10. Consultar DKT-Forget.
         var respuesta = fastApiClient.obtenerPrediccion(payload);
 
         if (respuesta == null
-                || respuesta.mastery() == null
-                || !Boolean.TRUE.equals(respuesta.modelReady())) {
+                || !Boolean.TRUE.equals(respuesta.modelReady())
+                || respuesta.mastery() == null) {
 
             System.out.println(
                     "[DKT-FORGET] Modelo no disponible. "
@@ -149,14 +200,14 @@ public class AssessmentEventsHandler {
             return;
         }
 
-        // 5. Obtenemos la estimación correspondiente a la skill actual.
+        // 11. Mastery correspondiente a la skill actual.
         Double mastery = respuesta.mastery()
                 .get(String.valueOf(activeSkillId));
 
         if (mastery == null) {
 
             System.out.println(
-                    "[DKT-FORGET] No se recibió predicción para skill "
+                    "[DKT-FORGET] FastAPI no devolvió mastery para skill "
                             + activeSkillId
             );
 
@@ -165,7 +216,7 @@ public class AssessmentEventsHandler {
 
         Float nuevaProbabilidad = mastery.floatValue();
 
-        // 6. Guardamos la predicción actual.
+        // 12. Persistir predicción actual.
         var topic = learningQueryService.handle(
                 new GetTopicByQuestionIdQuery(questionId)
         );
