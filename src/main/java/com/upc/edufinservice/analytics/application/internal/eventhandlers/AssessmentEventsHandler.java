@@ -11,16 +11,13 @@ import com.upc.edufinservice.analytics.infrastructure.external.fastapi.dto.Solic
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredCorrectlyEvent;
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredIncorrectlyEvent;
 import com.upc.edufinservice.learning.domain.model.queries.GetQuestionByIdQuery;
-import com.upc.edufinservice.learning.domain.model.queries.GetSideQuestQuestionsBySkillQuery;
 import com.upc.edufinservice.learning.domain.model.queries.GetTopicByQuestionIdQuery;
 import com.upc.edufinservice.learning.domain.services.LearningQueryService;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
 
 @Service
 public class AssessmentEventsHandler {
@@ -62,88 +59,144 @@ public class AssessmentEventsHandler {
         processInteraction(event.userId(), event.questionId(), 0);
     }
 
+
+    private static final int MIN_DKT_INTERACTIONS = 8;
     private void processInteraction(UUID userId, UUID questionId, Integer isCorrect) {
         // Extraemos la pregunta para obtener su habilidad granular e individual
-        var question = learningQueryService.handle(new GetQuestionByIdQuery(questionId))
-                .orElseThrow(() -> new IllegalArgumentException("Pregunta no encontrada para tracking de IA"));
+        var question = learningQueryService
+                .handle(new GetQuestionByIdQuery(questionId))
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Pregunta no encontrada para tracking de IA"
+                        )
+                );
 
-        var topic = learningQueryService.handle(new GetTopicByQuestionIdQuery(questionId));
         Integer activeSkillId = question.getSkill().getId();
 
-        if (activeSkillId != null) {
+        if (activeSkillId == null) {
+            return;
+        }
 
-            // 1. Guardar la interacción actual en la bitácora con la habilidad exacta de la pregunta
-            var currentInteraction = new StudentInteraction(userId, activeSkillId, isCorrect);
-            interactionRepository.save(currentInteraction);
+        // 1. Guardamos la interacción real.
+        var currentInteraction = new StudentInteraction(
+                userId,
+                activeSkillId,
+                isCorrect
+        );
 
-            // 2. Obtener todo el historial real cronológico del estudiante
-            var historial = interactionRepository.findByUserIdOrderByInteractedAtAsc(userId);
+        interactionRepository.save(currentInteraction);
 
-            // 2.1 Filtrar el historial de esta habilidad específica para el cálculo temporal (DMMA)
-            var historialDelTema = historial.stream()
-                    .filter(h -> h.getDktSkillId().equals(activeSkillId))
-                    .collect(Collectors.toList());
+        // 2. Recuperamos el historial cronológico.
+        var historial =
+                interactionRepository.findByUserIdOrderByInteractedAtAsc(userId);
 
-            // 3. Calcular Días de Inactividad ESPECÍFICOS (DMMA)
-            double diasInactividad = 0.0;
-            if (historialDelTema.size() > 1) {
-                var interaccionAnterior = historialDelTema.get(historialDelTema.size() - 2).getInteractedAt();
-                var interaccionActual = currentInteraction.getInteractedAt();
+        /*
+         * Durante el piloto simplemente acumulamos datos.
+         * No consultamos DKT hasta tener suficiente historial.
+         */
+        if (historial.size() < MIN_DKT_INTERACTIONS) {
 
-                long segundos = Duration.between(interaccionAnterior, interaccionActual).getSeconds();
-                diasInactividad = segundos / 86400.0;
-            }
-
-            // 4. Codificar la secuencia matemática tradicional DKT: (Skill * 2) + isCorrect
-            List<Integer> secuenciaReal = historial.stream()
-                    .map(h -> (h.getDktSkillId() * 2) + h.getIsCorrect())
-                    .collect(Collectors.toList());
-
-            // 5. Armar el contrato de inferencia enviando la habilidad objetivo real
-            var payload = new SolicitudPrediccionDto(
-                    userId.toString(),
-                    secuenciaReal,
-                    activeSkillId,
-                    diasInactividad
+            System.out.println(
+                    "[DKT-FORGET] Usuario " + userId
+                            + " tiene " + historial.size()
+                            + "/" + MIN_DKT_INTERACTIONS
+                            + " interacciones. Todavía no se consulta el modelo."
             );
 
-            System.out.println("[ANALYTICS] Secuencia granular enviada a FastAPI: " + secuenciaReal + " | Skill Objetivo: " + activeSkillId);
+            return;
+        }
 
-            var respuesta = fastApiClient.obtenerPrediccion(payload);
+        // 3. Transformamos nuestro historial al contrato nuevo de FastAPI.
+        var interactions = historial.stream()
+                .map(interaction ->
+                        new SolicitudPrediccionDto.InteraccionDto(
+                                interaction.getDktSkillId(),
+                                interaction.getIsCorrect() == 1,
+                                interaction.getInteractedAt()
+                                        .atOffset(java.time.ZoneOffset.UTC)
+                        )
+                )
+                .toList();
 
-            if (respuesta != null) {
-                Float nuevaProbabilidad = respuesta.probabilidad_final_dmma().floatValue();
-                String nivelRecomendado = respuesta.nivel_recomendado(); // 🔥 Capturamos el String de la IA [Nivel 1, 2 o 3]
+        // 4. Request DKT-Forget.
+        var payload = new SolicitudPrediccionDto(
+                userId.toString(),
+                interactions
+        );
 
-                UUID recommendedLessonId = null;
+        System.out.println(
+                "[DKT-FORGET] Enviando "
+                        + interactions.size()
+                        + " interacciones de usuario "
+                        + userId
+        );
 
-                // 🔥 2. INTERCEPTOR DE CRISIS PEDAGÓGICA (SIDE QUEST TRIGGER)
-                if ("Nivel 1 (Repaso / Fácil)".equalsIgnoreCase(nivelRecomendado)) {
-                    System.out.println("⚠️ [SIDE QUEST] Crisis de retención detectada para la habilidad: " + activeSkillId + ". Generando misión de reforzamiento...");
+        /*
+         * Si todavía no existe checkpoint, FastAPI devuelve 503.
+         * FastAPIClient lo transforma en null.
+         */
+        var respuesta = fastApiClient.obtenerPrediccion(payload);
 
-                    // Ejecutamos el Query aleatorio que creamos en el paso anterior (Limitado a 3 preguntas de tipo QUIZ)
-                    var preguntasRefuerzo = learningQueryService.handle(new GetSideQuestQuestionsBySkillQuery(activeSkillId, 3));
+        if (respuesta == null
+                || respuesta.mastery() == null
+                || !Boolean.TRUE.equals(respuesta.modelReady())) {
 
-                    if (!preguntasRefuerzo.isEmpty()) {
-                        // Extraemos la lección de origen de estas preguntas para activar el flag en el mapa
-                        recommendedLessonId = preguntasRefuerzo.get(0).getLesson().getId();
-                        System.out.println("🎯 [SIDE QUEST] Misión asociada exitosamente a la lección ID: " + recommendedLessonId);
-                    }
-                }
+            System.out.println(
+                    "[DKT-FORGET] Modelo no disponible. "
+                            + "La interacción quedó registrada para el piloto."
+            );
 
-                // 3. Persistimos los resultados cruzados en PostgreSQL
-                var prediccionExistente = mlPredictionRepository.findByUserIdAndTopicId(userId, topic.getId());
+            return;
+        }
 
-                if (prediccionExistente.isPresent()) {
-                    var prediccion = prediccionExistente.get();
-                    // Actualizamos la nota predictiva e inyectamos el ID de la lección si hubo Side Quest (o null si aprobó)
-                    prediccion.updatePrediction(nuevaProbabilidad, recommendedLessonId);
-                    mlPredictionRepository.save(prediccion);
-                } else {
-                    var nuevaPrediccion = new MlPrediction(userId, topic.getId(), nuevaProbabilidad, recommendedLessonId);
-                    mlPredictionRepository.save(nuevaPrediccion);
-                }
-            }
+        // 5. Obtenemos la estimación correspondiente a la skill actual.
+        Double mastery = respuesta.mastery()
+                .get(String.valueOf(activeSkillId));
+
+        if (mastery == null) {
+
+            System.out.println(
+                    "[DKT-FORGET] No se recibió predicción para skill "
+                            + activeSkillId
+            );
+
+            return;
+        }
+
+        Float nuevaProbabilidad = mastery.floatValue();
+
+        // 6. Guardamos la predicción actual.
+        var topic = learningQueryService.handle(
+                new GetTopicByQuestionIdQuery(questionId)
+        );
+
+        var prediccionExistente =
+                mlPredictionRepository.findByUserIdAndTopicId(
+                        userId,
+                        topic.getId()
+                );
+
+        if (prediccionExistente.isPresent()) {
+
+            var prediccion = prediccionExistente.get();
+
+            prediccion.updatePrediction(
+                    nuevaProbabilidad,
+                    null
+            );
+
+            mlPredictionRepository.save(prediccion);
+
+        } else {
+
+            var nuevaPrediccion = new MlPrediction(
+                    userId,
+                    topic.getId(),
+                    nuevaProbabilidad,
+                    null
+            );
+
+            mlPredictionRepository.save(nuevaPrediccion);
         }
     }
 }
