@@ -210,36 +210,17 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
                             _userLessonProgressRepository.save(nextProgress);
                         }
                     } else {
-                        // 🔥 ESCENARIO B: ¡NUEVA LÓGICA! Era la ÚLTIMA lección del tema actual. Transición al Siguiente Tema.
-                        for (int j = 0; j < allTopics.size(); j++) {
-                            if (allTopics.get(j).getId().equals(currentTopic.getId())) {
-                                if (j + 1 < allTopics.size()) {
-                                    // Existe un siguiente módulo en el mapa (Ej: pasar de Tema 1 a Tema 2)
-                                    var nextTopic = allTopics.get(j + 1);
-                                    var nextTopicLessons = _learningQueryService.handle(new GetLessonsByTopicIdQuery(nextTopic.getId()));
-
-                                    if (!nextTopicLessons.isEmpty()) {
-                                        // Extraemos de forma segura la PRIMERÍSIMA lección del nuevo módulo
-                                        var firstLessonOfNextTopic = nextTopicLessons.get(0);
-
-                                        var nextTopicLessonProgress = _userLessonProgressRepository
-                                                .findByUserIdAndLessonId(command.userId(), firstLessonOfNextTopic.getId())
-                                                .orElseGet(() -> {
-                                                    UserLessonProgress ulp = new UserLessonProgress(command.userId(), firstLessonOfNextTopic.getId());
-                                                    ulp.setStatus(ProgressStatus.LOCKED);
-                                                    return ulp;
-                                                });
-
-                                        if (nextTopicLessonProgress.getStatus() == ProgressStatus.LOCKED) {
-                                            nextTopicLessonProgress.setStatus(ProgressStatus.UNLOCKED);
-                                            _userLessonProgressRepository.save(nextTopicLessonProgress);
-                                            System.out.println("🔓 [TRACKING] ¡Tema completado con éxito! Desbloqueada la lección inicial del siguiente tema: " + firstLessonOfNextTopic.getTitle());
-                                        }
-                                    }
-                                }
-                                break;
-                            }
-                        }
+                        /*
+                         * Era la última lección real del Topic.
+                         *
+                         * Ya NO desbloqueamos el siguiente Topic aquí.
+                         * El estudiante debe completar y aprobar el FINAL dinámico.
+                         * FinalCompletionService será quien desbloquee el siguiente módulo.
+                         */
+                        System.out.println(
+                                "[FINAL] Última lección del módulo completada. "
+                                        + "La evaluación final ya puede ser presentada."
+                        );
                     }
                     break;
                 }

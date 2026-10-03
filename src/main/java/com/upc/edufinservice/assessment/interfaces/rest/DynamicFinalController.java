@@ -1,8 +1,11 @@
 package com.upc.edufinservice.assessment.interfaces.rest;
 
 import com.upc.edufinservice.assessment.application.internal.services.DynamicFinalService;
+import com.upc.edufinservice.assessment.application.internal.services.FinalCompletionService;
 import com.upc.edufinservice.assessment.interfaces.rest.resources.DynamicFinalQuestionResource;
 import com.upc.edufinservice.assessment.interfaces.rest.resources.DynamicFinalResource;
+import com.upc.edufinservice.assessment.interfaces.rest.resources.CompleteFinalResource;
+import com.upc.edufinservice.assessment.interfaces.rest.resources.FinalCompletionResponse;
 import com.upc.edufinservice.iam.domain.model.queries.GetUserByUsernameQuery;
 import com.upc.edufinservice.iam.domain.services.UserQueryService;
 import com.upc.edufinservice.learning.domain.model.queries.GetOptionsByQuestionIdQuery;
@@ -14,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,15 +37,18 @@ public class DynamicFinalController {
     private final DynamicFinalService dynamicFinalService;
     private final LearningQueryService learningQueryService;
     private final UserQueryService userQueryService;
+    private final FinalCompletionService finalCompletionService;
 
     public DynamicFinalController(
             DynamicFinalService dynamicFinalService,
             LearningQueryService learningQueryService,
-            UserQueryService userQueryService
+            UserQueryService userQueryService,
+            FinalCompletionService finalCompletionService
     ) {
         this.dynamicFinalService = dynamicFinalService;
         this.learningQueryService = learningQueryService;
         this.userQueryService = userQueryService;
+        this.finalCompletionService = finalCompletionService;
     }
 
     @GetMapping("/topics/{topicId}")
@@ -87,6 +95,24 @@ public class DynamicFinalController {
                         resources
                 )
         );
+    }
+
+    @PostMapping("/topics/{topicId}/complete")
+    public ResponseEntity<FinalCompletionResponse> completeDynamicFinal(
+            @PathVariable UUID topicId,
+            @RequestBody CompleteFinalResource resource
+    ) {
+        UUID userId = getSafeUserIdFromToken();
+
+        var response =
+                finalCompletionService.completeFinal(
+                        userId,
+                        topicId,
+                        resource.questionIds(),
+                        resource.timeSpentSec()
+                );
+
+        return ResponseEntity.ok(response);
     }
 
     private UUID getSafeUserIdFromToken() {
