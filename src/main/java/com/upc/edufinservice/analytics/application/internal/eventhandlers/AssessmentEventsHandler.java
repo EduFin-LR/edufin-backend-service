@@ -47,7 +47,13 @@ public class AssessmentEventsHandler {
 
     @EventListener
     public void on(QuestionAnsweredCorrectlyEvent event) {
-        processInteraction(event.userId(), event.questionId(), 1);
+        processInteraction(
+                event.userId(),
+                event.questionId(),
+                1,
+                event.interactionType(),
+                event.selectionReason()
+        );
     }
 
     @EventListener
@@ -67,16 +73,23 @@ public class AssessmentEventsHandler {
         errorPattern.incrementErrorCount();
         errorPatternRepository.save(errorPattern);
 
-        processInteraction(event.userId(), event.questionId(), 0);
+        processInteraction(
+                event.userId(),
+                event.questionId(),
+                0,
+                event.interactionType(),
+                event.selectionReason()
+        );
     }
 
     private void processInteraction(
             UUID userId,
             UUID questionId,
-            Integer isCorrect
+            Integer isCorrect,
+            InteractionType requestedInteractionType,
+            SelectionReason requestedSelectionReason
     ) {
 
-        // 1. Recuperar la pregunta.
         var question = learningQueryService
                 .handle(new GetQuestionByIdQuery(questionId))
                 .orElseThrow(() ->
@@ -85,21 +98,27 @@ public class AssessmentEventsHandler {
                         )
                 );
 
-        // 2. Solo QUIZ y FINAL participan en DKT-Forget.
-        LessonType lessonType = question.getLesson().getLessonType();
+        /*
+         * Solo preguntas provenientes de bancos evaluativos participan en DKT.
+         *
+         * Una pregunta de QUIZ puede presentarse como:
+         * - QUIZ normal
+         * - REINFORCEMENT
+         * - FINAL dinámico
+         */
+        LessonType sourceLessonType = question.getLesson().getLessonType();
 
-        if (lessonType != LessonType.QUIZ
-                && lessonType != LessonType.FINAL) {
+        if (sourceLessonType != LessonType.QUIZ
+                && sourceLessonType != LessonType.FINAL) {
 
             System.out.println(
                     "[DKT-FORGET] Interacción ignorada. "
-                            + "lessonType=" + lessonType
+                            + "sourceLessonType=" + sourceLessonType
                             + ", questionId=" + questionId
             );
             return;
         }
 
-        // 3. Skill estable 1..30.
         Integer activeSkillId = question.getSkill().getId();
 
         if (activeSkillId == null) {
@@ -109,16 +128,32 @@ public class AssessmentEventsHandler {
             return;
         }
 
-        // 4. Contexto inicial de la interacción.
-        InteractionType interactionType =
-                lessonType == LessonType.FINAL
-                        ? InteractionType.FINAL
-                        : InteractionType.QUIZ;
+        /*
+         * Fallback para flujos antiguos/no adaptativos:
+         * si el frontend no mandó metadata, inferimos el contexto básico.
+         */
+        InteractionType interactionType = requestedInteractionType;
 
-        // Más adelante el flujo adaptativo enviará LOW_MASTERY/REINFORCEMENT.
-        SelectionReason selectionReason = SelectionReason.STANDARD;
+        if (interactionType == null) {
+            interactionType =
+                    sourceLessonType == LessonType.FINAL
+                            ? InteractionType.FINAL
+                            : InteractionType.QUIZ;
+        }
 
-        // 5. Guardar interacción válida.
+        SelectionReason selectionReason =
+                requestedSelectionReason != null
+                        ? requestedSelectionReason
+                        : SelectionReason.STANDARD;
+
+        /*
+         * Consistencia pedagógica:
+         * si la actividad fue REINFORCEMENT, la razón debe ser LOW_MASTERY.
+         */
+        if (interactionType == InteractionType.REINFORCEMENT) {
+            selectionReason = SelectionReason.LOW_MASTERY;
+        }
+
         var currentInteraction = new StudentInteraction(
                 userId,
                 activeSkillId,
@@ -129,11 +164,9 @@ public class AssessmentEventsHandler {
 
         interactionRepository.save(currentInteraction);
 
-        // 6. Historial cronológico del estudiante.
         var historial =
                 interactionRepository.findByUserIdOrderByInteractedAtAsc(userId);
 
-        // 7. No consultar DKT hasta tener suficiente evidencia.
         if (historial.size() < MIN_DKT_INTERACTIONS) {
             System.out.println(
                     "[DKT-FORGET] Usuario " + userId
@@ -144,7 +177,6 @@ public class AssessmentEventsHandler {
             return;
         }
 
-        // 8. Adaptar historial al contrato FastAPI.
         var interactions = historial.stream()
                 .map(interaction ->
                         new SolicitudPrediccionDto.InteraccionDto(
@@ -160,7 +192,6 @@ public class AssessmentEventsHandler {
                 interactions
         );
 
-        // 9. Consultar DKT-Forget.
         var respuesta = fastApiClient.obtenerPrediccion(payload);
 
         if (respuesta == null
@@ -175,12 +206,6 @@ public class AssessmentEventsHandler {
             return;
         }
 
-        /*
-         * 10. Persistir el snapshot COMPLETO de mastery.
-         *
-         * FastAPI devuelve una probabilidad para cada una de las 30 skills.
-         * Ya no descartamos 29 probabilidades para conservar solo la skill actual.
-         */
         masteryService.updateMasterySnapshot(
                 userId,
                 respuesta.mastery()

@@ -66,14 +66,30 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
                 command.selectedOptionId(),
                 command.selectedMatchCategory(),
                 calculatedIsCorrect,
-                command.timeTakenSec()
+                command.timeTakenSec(),
+                command.interactionType(),
+                command.selectionReason()
         );
         _repository.save(attempt);
 
         if (calculatedIsCorrect) {
-            _eventPublisher.publishEvent(new QuestionAnsweredCorrectlyEvent(attempt.getUserId(), attempt.getQuestionId()));
+            _eventPublisher.publishEvent(
+                    new QuestionAnsweredCorrectlyEvent(
+                            attempt.getUserId(),
+                            attempt.getQuestionId(),
+                            attempt.getInteractionType(),
+                            attempt.getSelectionReason()
+                    )
+            );
         } else {
-            _eventPublisher.publishEvent(new QuestionAnsweredIncorrectlyEvent(attempt.getUserId(), attempt.getQuestionId()));
+            _eventPublisher.publishEvent(
+                    new QuestionAnsweredIncorrectlyEvent(
+                            attempt.getUserId(),
+                            attempt.getQuestionId(),
+                            attempt.getInteractionType(),
+                            attempt.getSelectionReason()
+                    )
+            );
         }
 
         return Optional.of(attempt);

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,43 +27,59 @@ public class AdaptiveReinforcementService {
         this.learningQueryService = learningQueryService;
     }
 
-    /**
-     * Selecciona preguntas de refuerzo usando las skills con menor mastery.
-     *
-     * Versión inicial:
-     * - ordena las skills de menor a mayor mastery;
-     * - intenta obtener una pregunta QUIZ por skill;
-     * - evita repetir questionId dentro del resultado;
-     * - continúa recorriendo skills hasta completar reinforcementCount;
-     * - no modifica todavía dificultad, módulos desbloqueados ni historial previo.
-     *
-     * @param mastery mapa skillId -> mastery devuelto por DKT-Forget
-     * @param reinforcementCount cantidad máxima de preguntas de refuerzo
-     * @return preguntas seleccionadas junto con skill y mastery que motivaron la selección
-     */
     public List<ReinforcementQuestionSelection> selectReinforcementQuestions(
             Map<String, Double> mastery,
+            Set<Integer> eligibleSkillIds,
+            Set<Integer> excludedSkillIds,
             int reinforcementCount
     ) {
         if (mastery == null
                 || mastery.isEmpty()
+                || eligibleSkillIds == null
+                || eligibleSkillIds.isEmpty()
                 || reinforcementCount <= 0) {
             return List.of();
         }
 
-        /*
-         * Pedimos más skills candidatas que preguntas necesarias porque
-         * alguna skill podría no tener preguntas QUIZ disponibles.
-         */
-        List<LowMasterySkill> candidateSkills =
-                lowMasterySelector.getLowestMasterySkills(
-                        mastery,
-                        Math.min(30, Math.max(reinforcementCount * 3, reinforcementCount))
-                );
+        Set<Integer> exclusions =
+                excludedSkillIds != null ? excludedSkillIds : Set.of();
 
-        if (candidateSkills.isEmpty()) {
+        Map<String, Double> filteredMastery = new LinkedHashMap<>();
+
+        mastery.forEach((skillIdRaw, probability) -> {
+            if (skillIdRaw == null || probability == null) {
+                return;
+            }
+
+            try {
+                int skillId = Integer.parseInt(skillIdRaw);
+
+                if (eligibleSkillIds.contains(skillId)
+                        && !exclusions.contains(skillId)) {
+                    filteredMastery.put(
+                            String.valueOf(skillId),
+                            probability
+                    );
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        });
+
+        if (filteredMastery.isEmpty()) {
             return List.of();
         }
+
+        List<LowMasterySkill> candidateSkills =
+                lowMasterySelector.getLowestMasterySkills(
+                        filteredMastery,
+                        Math.min(
+                                filteredMastery.size(),
+                                Math.max(
+                                        reinforcementCount * 3,
+                                        reinforcementCount
+                                )
+                        )
+                );
 
         List<ReinforcementQuestionSelection> result = new ArrayList<>();
         Set<UUID> selectedQuestionIds = new HashSet<>();
@@ -73,14 +90,6 @@ public class AdaptiveReinforcementService {
                 break;
             }
 
-            /*
-             * Por ahora pedimos una pregunta aleatoria por skill.
-             * Más adelante este punto podrá considerar:
-             * - dificultad;
-             * - preguntas ya respondidas anteriormente;
-             * - módulo actual / módulos desbloqueados;
-             * - reglas específicas de QUIZ o FINAL.
-             */
             List<Question> questions = learningQueryService.handle(
                     new GetQuizQuestionsBySkillQuery(
                             candidate.skillId(),
