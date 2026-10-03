@@ -29,4 +29,6 @@ public interface LearningQueryService {
     List<Question> handle(GetSideQuestQuestionsBySkillQuery query);
 
     List<Question> handle(GetQuizQuestionsBySkillQuery query);
+
+    List<Question> handle(GetRandomQuizQuestionsByTopicQuery query);
 }

@@ -72,4 +72,19 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
             @Param("limit") int limit
     );
 
+
+    /**
+     * Obtiene preguntas solamente de bancos QUIZ pertenecientes a un Topic/módulo.
+     * Se usa para construir el FINAL dinámico sin depender de filas FINAL persistidas.
+     */
+    @Query(value = "SELECT q.* FROM questions q " +
+            "JOIN lessons l ON q.lesson_id = l.id " +
+            "WHERE l.topic_id = :topicId " +
+            "AND l.lesson_type = 'QUIZ' " +
+            "ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+    List<Question> findRandomQuizQuestionsByTopic(
+            @Param("topicId") UUID topicId,
+            @Param("limit") int limit
+    );
+
 }
