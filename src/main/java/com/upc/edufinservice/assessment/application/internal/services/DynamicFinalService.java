@@ -181,7 +181,14 @@ public class DynamicFinalService {
         Set<Integer> observedSkillIds =
                 new HashSet<>(
                         interactionRepository
-                                .findDistinctSkillIdsByUserId(userId)
+                                .findDistinctSkillIdsByUserIdAndInteractionTypeIn(
+                                        userId,
+                                        List.of(
+                                                InteractionType.QUIZ,
+                                                InteractionType.FINAL,
+                                                InteractionType.REINFORCEMENT
+                                        )
+                                )
                 );
 
         /*
