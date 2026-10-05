@@ -1,5 +1,6 @@
 package com.upc.edufinservice.assessment.application.internal.commandservices;
 
+import com.upc.edufinservice.analytics.domain.model.entities.InteractionType;
 import com.upc.edufinservice.assessment.domain.model.aggregates.QuestionAttempt;
 import com.upc.edufinservice.assessment.domain.model.aggregates.UserLessonProgress;
 import com.upc.edufinservice.learning.domain.model.ValueObjetcts.ProgressStatus;
@@ -16,7 +17,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class AssessmentCommandServiceImpl implements AssessmentCommandService {
@@ -148,7 +151,7 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
 
 
     // ========================================================================
-    // COMPLETADO DE LECCIÓN (FIXED FOR VIDEOS & MULTI-QUESTIONS)
+    // COMPLETADO DE LECCIÓN
     // ========================================================================
     @Override
     @Transactional
@@ -157,22 +160,83 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
                 .findByUserIdAndLessonId(command.userId(), command.lessonId())
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró un progreso activo para esta lección."));
 
-        var lessonQuestions = _learningQueryService.handle(new GetQuestionsByLessonIdQuery(command.lessonId()));
-        int totalQuestions = lessonQuestions.size();
-        int correctQuestions = 0;
-        int totalAttempts = 0;
+        // El frontend envía exactamente las preguntas que fueron presentadas
+        // en esta ejecución (8+2 en quiz adaptativo, por ejemplo). Así evitamos
+        // comparar contra todo el banco de preguntas de la lección.
+        var presentedQuestionIds = new LinkedHashSet<>(command.questionIds());
 
-        for (var question : lessonQuestions) {
-            var attempts = _repository.findByUserIdAndQuestionId(command.userId(), question.getId());
-            totalAttempts += attempts.size();
-            boolean hasCorrectAttempt = attempts.stream().anyMatch(QuestionAttempt::getIsCorrect);
-            if (hasCorrectAttempt) {
+        int totalQuestions = presentedQuestionIds.size();
+        int correctQuestions = 0;
+        int totalAtomicAttempts = 0;
+        int correctAtomicAttempts = 0;
+
+        for (UUID questionId : presentedQuestionIds) {
+            var question = _learningQueryService
+                    .handle(new GetQuestionByIdQuery(questionId))
+                    .orElseThrow(() -> new IllegalArgumentException("Pregunta no encontrada: " + questionId));
+
+            var quizAttempts = _repository
+                    .findByUserIdAndQuestionId(command.userId(), questionId)
+                    .stream()
+                    .filter(this::isQuizAttempt)
+                    .sorted(Comparator.comparing(QuestionAttempt::getAttemptedAt).reversed())
+                    .toList();
+
+            if (quizAttempts.isEmpty()) {
+                continue;
+            }
+
+            boolean questionCorrect;
+
+            if ("DRAG_AND_DROP".equalsIgnoreCase(question.getQuestionType())) {
+                // Una pregunta drag & drop genera un attempt por tarjeta/opción.
+                // Para la nota del quiz, sin embargo, la pregunta visual cuenta una
+                // sola vez. Tomamos el attempt más reciente de cada opción y exigimos
+                // que estén todas las opciones y todas sean correctas.
+                var expectedOptions = _learningQueryService.handle(
+                        new GetOptionsByQuestionIdQuery(questionId)
+                );
+
+                Map<UUID, QuestionAttempt> latestByOption = quizAttempts.stream()
+                        .filter(a -> a.getSelectedOptionId() != null)
+                        .collect(Collectors.toMap(
+                                QuestionAttempt::getSelectedOptionId,
+                                Function.identity(),
+                                (newer, older) -> newer,
+                                LinkedHashMap::new
+                        ));
+
+                totalAtomicAttempts += latestByOption.size();
+                correctAtomicAttempts += (int) latestByOption.values().stream()
+                        .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
+                        .count();
+
+                questionCorrect = !expectedOptions.isEmpty()
+                        && latestByOption.size() == expectedOptions.size()
+                        && expectedOptions.stream().allMatch(option -> {
+                    var attempt = latestByOption.get(option.getId());
+                    return attempt != null && Boolean.TRUE.equals(attempt.getIsCorrect());
+                });
+            } else {
+                // Multiple choice: solo importa el intento QUIZ/REINFORCEMENT
+                // más reciente de esa pregunta, no un acierto histórico.
+                var latestAttempt = quizAttempts.get(0);
+                totalAtomicAttempts += 1;
+                questionCorrect = Boolean.TRUE.equals(latestAttempt.getIsCorrect());
+                if (questionCorrect) {
+                    correctAtomicAttempts++;
+                }
+            }
+
+            if (questionCorrect) {
                 correctQuestions++;
             }
         }
 
         int incorrectQuestions = totalQuestions - correctQuestions;
-        float calculatedScore = totalQuestions > 0 ? ((float) correctQuestions / totalQuestions) * 100 : 100.0f;
+        float calculatedScore = totalQuestions > 0
+                ? ((float) correctQuestions / totalQuestions) * 100
+                : 100.0f;
 
         progress.markAsCompleted(calculatedScore, command.timeSpentSec());
         _userLessonProgressRepository.save(progress);
@@ -193,9 +257,7 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
 
             for (int i = 0; i < orderedLessons.size(); i++) {
                 if (orderedLessons.get(i).getId().equals(command.lessonId())) {
-
                     if (i + 1 < orderedLessons.size()) {
-                        // 🟢 ESCENARIO A: Hay una siguiente lección dentro del MISMO Tema
                         var nextLesson = orderedLessons.get(i + 1);
                         var nextProgress = _userLessonProgressRepository
                                 .findByUserIdAndLessonId(command.userId(), nextLesson.getId())
@@ -210,13 +272,6 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
                             _userLessonProgressRepository.save(nextProgress);
                         }
                     } else {
-                        /*
-                         * Era la última lección real del Topic.
-                         *
-                         * Ya NO desbloqueamos el siguiente Topic aquí.
-                         * El estudiante debe completar y aprobar el FINAL dinámico.
-                         * FinalCompletionService será quien desbloquee el siguiente módulo.
-                         */
                         System.out.println(
                                 "[FINAL] Última lección del módulo completada. "
                                         + "La evaluación final ya puede ser presentada."
@@ -227,28 +282,20 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
             }
         }
 
-        // ========================================================================
-        // 🎯 CÁLCULO DE XP Y PUBLICACIÓN DEL EVENTO
-        // ========================================================================
-
-        // 1. Bono por completar la lección (Igual a tu Math.round)
         int experienceGainedForCompletion = Math.round(calculatedScore);
-
-        // 2. Puntos que el alumno YA fue ganando por sus respuestas (10 XP por cada buena)
-        int experienceFromQuestions = correctQuestions * 10;
-
-        // 3. Suma total para la celebración final
+        // Los eventos de respuesta correcta otorgan 10 XP por interacción atómica.
+        // En drag & drop cada tarjeta es una interacción, por eso este valor se
+        // calcula a nivel de opción, mientras que la nota sigue siendo por pregunta.
+        int experienceFromQuestions = correctAtomicAttempts * 10;
         int totalExperience = experienceGainedForCompletion + experienceFromQuestions;
 
-        // Disparamos el evento original para que Gamificación guarde el bono final
         _eventPublisher.publishEvent(new com.upc.edufinservice.assessment.domain.model.events.LessonCompletedEvent(
                 command.userId(),
                 command.lessonId(),
                 calculatedScore,
-                totalAttempts
+                totalAtomicAttempts
         ));
 
-        // Retornamos el DTO desglosado hacia el controlador
         return new LessonCompletionResponse(
                 totalQuestions,
                 correctQuestions,
@@ -258,4 +305,10 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
                 totalExperience
         );
     }
+
+    private boolean isQuizAttempt(QuestionAttempt attempt) {
+        return attempt.getInteractionType() == InteractionType.QUIZ
+                || attempt.getInteractionType() == InteractionType.REINFORCEMENT;
+    }
+
 }

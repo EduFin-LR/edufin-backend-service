@@ -20,10 +20,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class FinalCompletionService {
@@ -130,13 +129,41 @@ public class FinalCompletionService {
                                     userId,
                                     questionId,
                                     InteractionType.FINAL
-                            );
+                            )
+                            .stream()
+                            .sorted(Comparator.comparing(QuestionAttempt::getAttemptedAt).reversed())
+                            .toList();
 
-            boolean hasCorrectFinalAttempt =
-                    finalAttempts.stream()
-                            .anyMatch(QuestionAttempt::getIsCorrect);
+            boolean questionCorrect = false;
 
-            if (hasCorrectFinalAttempt) {
+            if (!finalAttempts.isEmpty()) {
+                if ("DRAG_AND_DROP".equalsIgnoreCase(question.getQuestionType())) {
+                    var expectedOptions = learningQueryService.handle(
+                            new com.upc.edufinservice.learning.domain.model.queries.GetOptionsByQuestionIdQuery(questionId)
+                    );
+
+                    Map<UUID, QuestionAttempt> latestByOption = finalAttempts.stream()
+                            .filter(a -> a.getSelectedOptionId() != null)
+                            .collect(Collectors.toMap(
+                                    QuestionAttempt::getSelectedOptionId,
+                                    Function.identity(),
+                                    (newer, older) -> newer,
+                                    LinkedHashMap::new
+                            ));
+
+                    questionCorrect = !expectedOptions.isEmpty()
+                            && latestByOption.size() == expectedOptions.size()
+                            && expectedOptions.stream().allMatch(option -> {
+                        var attempt = latestByOption.get(option.getId());
+                        return attempt != null && Boolean.TRUE.equals(attempt.getIsCorrect());
+                    });
+                } else {
+                    // Para reintentos del FINAL solo cuenta la respuesta FINAL más reciente.
+                    questionCorrect = Boolean.TRUE.equals(finalAttempts.get(0).getIsCorrect());
+                }
+            }
+
+            if (questionCorrect) {
                 correctAnswers++;
             }
         }
