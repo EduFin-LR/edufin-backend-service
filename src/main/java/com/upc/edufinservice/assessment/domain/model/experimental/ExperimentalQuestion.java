@@ -38,12 +38,20 @@ public class ExperimentalQuestion {
     @Column(name = "source_reference", length = 255)
     private String sourceReference;
 
+    /**
+     * Skill estable 1..30 utilizada únicamente para inicializar DKT desde el PRE_TEST.
+     * Se deja nullable a nivel de esquema para permitir la migración de bancos ya existentes;
+     * el seeder la completa y el servicio valida que exista antes de enviar datos al modelo.
+     */
+    @Column(name = "dkt_skill_id")
+    private Integer dktSkillId;
+
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("optionOrder ASC")
     private List<ExperimentalOption> options = new ArrayList<>();
 
     public ExperimentalQuestion(String code, Integer questionOrder, Integer moduleNumber, String moduleName,
-                                String competency, String questionText, String sourceReference) {
+                                String competency, String questionText, String sourceReference, Integer dktSkillId) {
         this.code = code;
         this.questionOrder = questionOrder;
         this.moduleNumber = moduleNumber;
@@ -51,6 +59,11 @@ public class ExperimentalQuestion {
         this.competency = competency;
         this.questionText = questionText;
         this.sourceReference = sourceReference;
+        this.dktSkillId = dktSkillId;
+    }
+
+    public void updateDktSkillId(Integer dktSkillId) {
+        this.dktSkillId = dktSkillId;
     }
 
     public void addOption(ExperimentalOption option) {
