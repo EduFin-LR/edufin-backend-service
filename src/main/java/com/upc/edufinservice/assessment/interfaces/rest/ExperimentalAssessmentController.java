@@ -3,6 +3,7 @@ package com.upc.edufinservice.assessment.interfaces.rest;
 import com.upc.edufinservice.assessment.application.internal.services.ExperimentalAssessmentService;
 import com.upc.edufinservice.assessment.interfaces.rest.resources.ExperimentalQuestionResource;
 import com.upc.edufinservice.assessment.interfaces.rest.resources.ExperimentalSubmissionResponse;
+import com.upc.edufinservice.assessment.interfaces.rest.resources.ExperimentalAssessmentStatusResponse;
 import com.upc.edufinservice.assessment.interfaces.rest.resources.SubmitExperimentalAssessmentResource;
 import com.upc.edufinservice.iam.domain.model.queries.GetUserByUsernameQuery;
 import com.upc.edufinservice.iam.domain.services.UserQueryService;
@@ -19,7 +20,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/assessments/experimental")
-@Tag(name = "Experimental Assessment", description = "Pre-test/Post-test de investigación; aislado de DKT, XP y progreso")
+@Tag(name = "Experimental Assessment", description = "Pre-test/Post-test de investigación; PRE_TEST inicializa DKT, POST_TEST no altera el modelo, y ninguno otorga XP")
 public class ExperimentalAssessmentController {
     private final ExperimentalAssessmentService service;
     private final UserQueryService userQueryService;
@@ -32,6 +33,13 @@ public class ExperimentalAssessmentController {
     @GetMapping("/questions")
     public ResponseEntity<List<ExperimentalQuestionResource>> getQuestions() {
         return ResponseEntity.ok(service.getQuestions());
+    }
+
+
+    @GetMapping("/status")
+    public ResponseEntity<ExperimentalAssessmentStatusResponse> getStatus() {
+        UUID userId = currentUserId();
+        return ResponseEntity.ok(service.getStatus(userId));
     }
 
     @PostMapping("/submit")
