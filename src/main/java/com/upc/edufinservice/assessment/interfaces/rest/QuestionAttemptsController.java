@@ -78,7 +78,8 @@ public class QuestionAttemptsController {
         LessonCompletionResponse response = assessmentCommandService.handle(new CompleteLessonCommand(
                 safeUserId,
                 lessonId,
-                resource.timeSpentSec()
+                resource.timeSpentSec(),
+                resource.questionIds()
         ));
 
         // Devolvemos el JSON con el conteo de buenas y malas a React
