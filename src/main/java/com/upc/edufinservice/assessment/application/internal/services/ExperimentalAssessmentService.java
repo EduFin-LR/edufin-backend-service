@@ -13,9 +13,12 @@ import com.upc.edufinservice.assessment.domain.model.experimental.ExperimentalAs
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.ExperimentalAssessmentResponseRepository;
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.ExperimentalAssessmentSessionRepository;
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.ExperimentalQuestionRepository;
+import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.TopicFinalResultRepository;
 import com.upc.edufinservice.assessment.interfaces.rest.resources.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.upc.edufinservice.learning.domain.model.queries.GetAllTopicsQuery;
+import com.upc.edufinservice.learning.domain.services.LearningQueryService;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -33,6 +36,8 @@ public class ExperimentalAssessmentService {
     private final StudentInteractionRepository interactionRepository;
     private final FastAPIClient fastApiClient;
     private final MasteryService masteryService;
+    private final TopicFinalResultRepository finalResultRepository;
+    private final LearningQueryService learningQueryService;
 
     public ExperimentalAssessmentService(
             ExperimentalQuestionRepository questionRepository,
@@ -40,7 +45,9 @@ public class ExperimentalAssessmentService {
             ExperimentalAssessmentResponseRepository responseRepository,
             StudentInteractionRepository interactionRepository,
             FastAPIClient fastApiClient,
-            MasteryService masteryService
+            MasteryService masteryService,
+            TopicFinalResultRepository finalResultRepository,
+            LearningQueryService learningQueryService
     ) {
         this.questionRepository = questionRepository;
         this.sessionRepository = sessionRepository;
@@ -48,6 +55,8 @@ public class ExperimentalAssessmentService {
         this.interactionRepository = interactionRepository;
         this.fastApiClient = fastApiClient;
         this.masteryService = masteryService;
+        this.finalResultRepository = finalResultRepository;
+        this.learningQueryService = learningQueryService;
     }
 
     @Transactional(readOnly = true)
@@ -63,6 +72,33 @@ public class ExperimentalAssessmentService {
                 .toList();
     }
 
+
+    @Transactional(readOnly = true)
+    public ExperimentalAssessmentStatusResponse getStatus(UUID userId) {
+        boolean preTestCompleted = sessionRepository.existsByUserIdAndPhase(
+                userId, ExperimentalAssessmentPhase.PRE_TEST);
+        boolean postTestCompleted = sessionRepository.existsByUserIdAndPhase(
+                userId, ExperimentalAssessmentPhase.POST_TEST);
+        boolean postTestEligible = hasCompletedAllTopicFinals(userId);
+
+        return new ExperimentalAssessmentStatusResponse(
+                preTestCompleted,
+                postTestEligible,
+                postTestCompleted
+        );
+    }
+
+    private boolean hasCompletedAllTopicFinals(UUID userId) {
+        var topics = learningQueryService.handle(new GetAllTopicsQuery());
+        if (topics == null || topics.isEmpty()) return false;
+
+        var completedTopicIds = finalResultRepository.findByUserId(userId).stream()
+                .map(r -> r.getTopicId())
+                .collect(java.util.stream.Collectors.toSet());
+
+        return topics.stream().allMatch(topic -> completedTopicIds.contains(topic.getId()));
+    }
+
     @Transactional
     public ExperimentalSubmissionResponse submit(UUID userId, SubmitExperimentalAssessmentResource request) {
         if (userId == null) throw new IllegalArgumentException("userId es obligatorio.");
@@ -70,6 +106,13 @@ public class ExperimentalAssessmentService {
         if (request.answers() == null) throw new IllegalArgumentException("answers es obligatorio.");
 
         ExperimentalAssessmentPhase phase = request.phase();
+
+        if (phase == ExperimentalAssessmentPhase.POST_TEST && !hasCompletedAllTopicFinals(userId)) {
+            throw new IllegalStateException(
+                    "El POST_TEST solo está disponible después de completar los FINAL de todos los módulos."
+            );
+        }
+
         if (sessionRepository.existsByUserIdAndPhase(userId, phase)) {
             throw new IllegalStateException("El usuario ya completó la fase " + phase + ".");
         }

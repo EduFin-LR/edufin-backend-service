@@ -4,6 +4,7 @@ import com.upc.edufinservice.assessment.domain.model.aggregates.TopicFinalResult
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,4 +21,6 @@ public interface TopicFinalResultRepository
             UUID userId,
             UUID topicId
     );
+
+    List<TopicFinalResult> findByUserId(UUID userId);
 }

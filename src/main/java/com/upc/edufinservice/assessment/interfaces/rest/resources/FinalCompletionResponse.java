@@ -7,5 +7,6 @@ public record FinalCompletionResponse(
         float score,
         boolean passed,
         int finalExperience,
-        boolean nextTopicUnlocked
+        boolean nextTopicUnlocked,
+        boolean postTestAvailable
 ) {}

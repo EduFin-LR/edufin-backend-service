@@ -5,7 +5,9 @@ import com.upc.edufinservice.assessment.domain.model.aggregates.QuestionAttempt;
 import com.upc.edufinservice.assessment.domain.model.aggregates.TopicFinalResult;
 import com.upc.edufinservice.assessment.domain.model.aggregates.UserLessonProgress;
 import com.upc.edufinservice.assessment.domain.model.events.FinalCompletedEvent;
+import com.upc.edufinservice.assessment.domain.model.experimental.ExperimentalAssessmentPhase;
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.QuestionAttemptRepository;
+import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.ExperimentalAssessmentSessionRepository;
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.TopicFinalResultRepository;
 import com.upc.edufinservice.assessment.infrastructure.persistence.jpa.repositories.UserLessonProgressRepository;
 import com.upc.edufinservice.assessment.interfaces.rest.resources.FinalCompletionResponse;
@@ -38,19 +40,22 @@ public class FinalCompletionService {
     private final TopicFinalResultRepository finalResultRepository;
     private final UserLessonProgressRepository lessonProgressRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final ExperimentalAssessmentSessionRepository experimentalSessionRepository;
 
     public FinalCompletionService(
             LearningQueryService learningQueryService,
             QuestionAttemptRepository questionAttemptRepository,
             TopicFinalResultRepository finalResultRepository,
             UserLessonProgressRepository lessonProgressRepository,
-            ApplicationEventPublisher eventPublisher
+            ApplicationEventPublisher eventPublisher,
+            ExperimentalAssessmentSessionRepository experimentalSessionRepository
     ) {
         this.learningQueryService = learningQueryService;
         this.questionAttemptRepository = questionAttemptRepository;
         this.finalResultRepository = finalResultRepository;
         this.lessonProgressRepository = lessonProgressRepository;
         this.eventPublisher = eventPublisher;
+        this.experimentalSessionRepository = experimentalSessionRepository;
     }
 
     @Transactional
@@ -212,6 +217,10 @@ public class FinalCompletionService {
 
         finalResultRepository.save(result);
 
+        boolean postTestAvailable = hasCompletedAllTopicFinals(userId)
+                && !experimentalSessionRepository.existsByUserIdAndPhase(
+                userId, ExperimentalAssessmentPhase.POST_TEST);
+
         boolean nextTopicUnlocked = false;
 
         if (passed) {
@@ -245,8 +254,24 @@ public class FinalCompletionService {
                 score,
                 passed,
                 finalExperience,
-                nextTopicUnlocked
+                nextTopicUnlocked,
+                postTestAvailable
         );
+    }
+
+
+    private boolean hasCompletedAllTopicFinals(UUID userId) {
+        var allTopics = learningQueryService.handle(new GetAllTopicsQuery());
+        if (allTopics == null || allTopics.isEmpty()) {
+            return false;
+        }
+
+        var completedTopicIds = finalResultRepository.findByUserId(userId).stream()
+                .map(TopicFinalResult::getTopicId)
+                .collect(Collectors.toSet());
+
+        return allTopics.stream()
+                .allMatch(topic -> completedTopicIds.contains(topic.getId()));
     }
 
     private boolean unlockNextTopic(
