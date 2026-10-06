@@ -307,7 +307,8 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
     }
 
     private boolean isQuizAttempt(QuestionAttempt attempt) {
-        return attempt.getInteractionType() == InteractionType.QUIZ
+        return attempt.getInteractionType() == null
+                || attempt.getInteractionType() == InteractionType.QUIZ
                 || attempt.getInteractionType() == InteractionType.REINFORCEMENT;
     }
 
