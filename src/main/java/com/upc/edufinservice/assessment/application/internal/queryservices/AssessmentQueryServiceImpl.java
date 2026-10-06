@@ -42,6 +42,27 @@ public class AssessmentQueryServiceImpl implements AssessmentQueryService {
     }
 
     @Override
+    public int getLessonStars(UUID userId, UUID lessonId) {
+        return _userLessonProgressRepository.findByUserIdAndLessonId(userId, lessonId)
+                .map(progress -> {
+                    // Los registros LOCKED/UNLOCKED pueden existir antes de que el
+                    // estudiante responda el quiz. En ese caso no hay estrellas.
+                    if (progress.getAttempts() == null || progress.getAttempts() <= 0) {
+                        return 0;
+                    }
+
+                    float score = progress.getScore() == null ? 0.0f : progress.getScore();
+
+                    // Equivalencia para un quiz de 10 preguntas:
+                    // 0-4 correctas = 1 estrella, 5-8 = 2, 9-10 = 3.
+                    if (score >= 90.0f) return 3;
+                    if (score >= 50.0f) return 2;
+                    return 1;
+                })
+                .orElse(0);
+    }
+
+    @Override
     public boolean hasCompletedDiagnostic(UUID userId) {
         // El "diagnostic_test" del perfil ahora representa haber completado el PRE_TEST experimental.
         return _experimentalAssessmentSessionRepository
