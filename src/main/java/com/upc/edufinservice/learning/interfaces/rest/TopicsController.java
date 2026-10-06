@@ -9,6 +9,7 @@ import com.upc.edufinservice.assessment.domain.services.AssessmentQueryService;
 import com.upc.edufinservice.iam.domain.model.queries.GetUserByUsernameQuery;
 import com.upc.edufinservice.iam.domain.services.UserQueryService;
 import com.upc.edufinservice.learning.domain.model.ValueObjetcts.ProgressStatus;
+import com.upc.edufinservice.learning.domain.model.ValueObjetcts.LessonType;
 import com.upc.edufinservice.learning.domain.model.aggregates.Lesson;
 import com.upc.edufinservice.learning.domain.model.queries.GetTopicByIdQuery;
 import com.upc.edufinservice.learning.interfaces.rest.resources.TopicLessonsResponse;
@@ -145,6 +146,12 @@ public class TopicsController {
             boolean isFirstLessonOfApp = topicId.equals(firstTopicId) && l.getLessonOrder() == 1;
             String status = assessmentQueryService.getLessonStatus(safeUserId, l.getId(), isFirstLessonOfApp);
 
+            // Las estrellas se muestran únicamente en QUIZ. Las lecciones
+            // teóricas, videos y otros tipos mantienen stars = 0.
+            int stars = l.getLessonType() == LessonType.QUIZ
+                    ? assessmentQueryService.getLessonStars(safeUserId, l.getId())
+                    : 0;
+
             enrichedLessons.add(new LessonResource(
                     l.getId(),
                     l.getTitle(),
@@ -153,7 +160,8 @@ public class TopicsController {
                     l.getLessonOrder(),
                     l.getLessonType().name(),
                     status,
-                    l.getSkill().getId() // 🔥 NUEVO: Inyectamos el ID
+                    l.getSkill().getId(), // ID de skill para tracking/DKT
+                    stars
             ));
         }
 

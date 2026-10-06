@@ -8,6 +8,12 @@ public interface AssessmentQueryService {
 
     String getLessonStatus(UUID userId, UUID lessonId, boolean isFirstLessonOfApp);
 
+    /**
+     * Devuelve las estrellas obtenidas en una lección evaluativa a partir
+     * del mejor score persistido. Si todavía no hubo intentos, devuelve 0.
+     */
+    int getLessonStars(UUID userId, UUID lessonId);
+
     boolean hasCompletedDiagnostic(UUID userId);
 
     boolean hasPassedTopicFinal(UUID userId, UUID topicId);
