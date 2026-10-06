@@ -4,6 +4,7 @@ import com.upc.edufinservice.analytics.domain.model.entities.InteractionType;
 import com.upc.edufinservice.assessment.domain.model.aggregates.QuestionAttempt;
 import com.upc.edufinservice.assessment.domain.model.aggregates.UserLessonProgress;
 import com.upc.edufinservice.learning.domain.model.ValueObjetcts.ProgressStatus;
+import com.upc.edufinservice.learning.domain.model.ValueObjetcts.LessonType;
 import com.upc.edufinservice.assessment.domain.model.commands.*;
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredCorrectlyEvent;
 import com.upc.edufinservice.assessment.domain.model.events.QuestionAnsweredIncorrectlyEvent;
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class AssessmentCommandServiceImpl implements AssessmentCommandService {
+
+    private static final float QUIZ_PASSING_SCORE = 70.0f;
 
     private final QuestionAttemptRepository _repository;
     private final UserLessonProgressRepository _userLessonProgressRepository;
@@ -238,23 +241,49 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
                 ? ((float) correctQuestions / totalQuestions) * 100
                 : 100.0f;
 
-        progress.markAsCompleted(calculatedScore, command.timeSpentSec());
-        _userLessonProgressRepository.save(progress);
-
-        // Buscador macro para identificar el tema actual
+        // Identificamos la lección actual para aplicar la regla de aprobación
+        // únicamente a las lecciones de tipo QUIZ. Las lecciones teóricas con
+        // 3 preguntas continúan completándose al responderlas, sin exigir 70%.
         Topic currentTopic = null;
+        com.upc.edufinservice.learning.domain.model.aggregates.Lesson currentLesson = null;
+        List<com.upc.edufinservice.learning.domain.model.aggregates.Lesson> orderedLessons = List.of();
+
         var allTopics = _learningQueryService.handle(new GetAllTopicsQuery());
         for (var t : allTopics) {
             var lessonsOfTopic = _learningQueryService.handle(new GetLessonsByTopicIdQuery(t.getId()));
-            if (lessonsOfTopic.stream().anyMatch(l -> l.getId().equals(command.lessonId()))) {
+            var matchedLesson = lessonsOfTopic.stream()
+                    .filter(l -> l.getId().equals(command.lessonId()))
+                    .findFirst();
+
+            if (matchedLesson.isPresent()) {
                 currentTopic = t;
+                currentLesson = matchedLesson.get();
+                orderedLessons = lessonsOfTopic;
                 break;
             }
         }
 
-        if (currentTopic != null) {
-            var orderedLessons = _learningQueryService.handle(new GetLessonsByTopicIdQuery(currentTopic.getId()));
+        boolean isEvaluationQuiz = currentLesson != null
+                && currentLesson.getLessonType() == LessonType.QUIZ;
+        boolean passed = !isEvaluationQuiz || calculatedScore >= QUIZ_PASSING_SCORE;
 
+        if (passed) {
+            progress.markAsCompleted(calculatedScore, command.timeSpentSec());
+        } else {
+            // El QUIZ fue respondido, pero no aprobado. Se conserva el mejor
+            // puntaje y el tiempo/intento, pero la lección sigue IN_PROGRESS.
+            progress.setStatus(ProgressStatus.IN_PROGRESS);
+            progress.setCompletedAt(null);
+            if (calculatedScore > progress.getScore()) {
+                progress.setScore(calculatedScore);
+            }
+            progress.setTimeSpentSec(progress.getTimeSpentSec() + command.timeSpentSec());
+            progress.setAttempts(progress.getAttempts() + 1);
+        }
+        _userLessonProgressRepository.save(progress);
+
+        // Solo una lección aprobada puede desbloquear la siguiente.
+        if (passed && currentTopic != null) {
             for (int i = 0; i < orderedLessons.size(); i++) {
                 if (orderedLessons.get(i).getId().equals(command.lessonId())) {
                     if (i + 1 < orderedLessons.size()) {
@@ -282,19 +311,23 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
             }
         }
 
-        int experienceGainedForCompletion = Math.round(calculatedScore);
+        // Un QUIZ reprobado no entrega XP de completado. Los aciertos de sus
+        // preguntas mantienen su XP individual, igual que antes.
+        int experienceGainedForCompletion = passed ? Math.round(calculatedScore) : 0;
         // Los eventos de respuesta correcta otorgan 10 XP por interacción atómica.
         // En drag & drop cada tarjeta es una interacción, por eso este valor se
         // calcula a nivel de opción, mientras que la nota sigue siendo por pregunta.
         int experienceFromQuestions = correctAtomicAttempts * 10;
         int totalExperience = experienceGainedForCompletion + experienceFromQuestions;
 
-        _eventPublisher.publishEvent(new com.upc.edufinservice.assessment.domain.model.events.LessonCompletedEvent(
-                command.userId(),
-                command.lessonId(),
-                calculatedScore,
-                totalAtomicAttempts
-        ));
+        if (passed) {
+            _eventPublisher.publishEvent(new com.upc.edufinservice.assessment.domain.model.events.LessonCompletedEvent(
+                    command.userId(),
+                    command.lessonId(),
+                    calculatedScore,
+                    totalAtomicAttempts
+            ));
+        }
 
         return new LessonCompletionResponse(
                 totalQuestions,

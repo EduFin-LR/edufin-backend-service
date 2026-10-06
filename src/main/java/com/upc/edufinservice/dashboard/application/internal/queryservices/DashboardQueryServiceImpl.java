@@ -123,7 +123,14 @@ public class DashboardQueryServiceImpl {
 
             if (isTopicAvailable) {
                 if (totalLecciones > 0 && leccionesCompletadas == totalLecciones) {
-                    status = ProgressStatus.COMPLETED.name();
+                    boolean finalPassed = assessmentQueryService.hasPassedTopicFinal(
+                            userId,
+                            topic.getId()
+                    );
+
+                    status = finalPassed
+                            ? ProgressStatus.COMPLETED.name()
+                            : ProgressStatus.IN_PROGRESS.name();
                 } else if (leccionesCompletadas > 0) {
                     status = ProgressStatus.IN_PROGRESS.name();
                 } else {
