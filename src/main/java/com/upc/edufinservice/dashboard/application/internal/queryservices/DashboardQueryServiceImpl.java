@@ -113,7 +113,14 @@ public class DashboardQueryServiceImpl {
             // C. Le preguntamos a Assessment cuántas de esas lecciones específicas completó el usuario
             int leccionesCompletadas = assessmentQueryService.getCompletedLessonsCount(userId, lessonIds);
 
-            int porcentaje = totalLecciones > 0 ? (leccionesCompletadas * 100) / totalLecciones : 0;
+            // El examen FINAL cuenta como una actividad adicional dentro del progreso del módulo.
+            // Ejemplo: 12 lecciones + 1 FINAL = 13 actividades totales.
+            boolean finalPassed = assessmentQueryService.hasPassedTopicFinal(userId, topic.getId());
+            int totalActividades = totalLecciones + 1;
+            int actividadesCompletadas = leccionesCompletadas + (finalPassed ? 1 : 0);
+            int porcentaje = totalActividades > 0
+                    ? (actividadesCompletadas * 100) / totalActividades
+                    : 0;
 
             // Por defecto, asumimos que el tema macro está bloqueado
             String status = ProgressStatus.LOCKED.name();
@@ -123,11 +130,6 @@ public class DashboardQueryServiceImpl {
 
             if (isTopicAvailable) {
                 if (totalLecciones > 0 && leccionesCompletadas == totalLecciones) {
-                    boolean finalPassed = assessmentQueryService.hasPassedTopicFinal(
-                            userId,
-                            topic.getId()
-                    );
-
                     status = finalPassed
                             ? ProgressStatus.COMPLETED.name()
                             : ProgressStatus.IN_PROGRESS.name();
@@ -152,7 +154,7 @@ public class DashboardQueryServiceImpl {
             boolean isAiRecommended = topic.getId().equals(topicIdRecomendado);
 
             learningPath.add(new TopicProgressResource(
-                    topic.getId(), topic.getName(), leccionesCompletadas, totalLecciones, porcentaje, status, isAiRecommended
+                    topic.getId(), topic.getName(), actividadesCompletadas, totalActividades, porcentaje, status, isAiRecommended
             ));
         }
 
