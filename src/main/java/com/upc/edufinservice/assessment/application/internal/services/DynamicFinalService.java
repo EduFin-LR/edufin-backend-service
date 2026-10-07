@@ -8,7 +8,6 @@ import com.upc.edufinservice.learning.domain.model.ValueObjetcts.LessonType;
 import com.upc.edufinservice.learning.domain.model.aggregates.Question;
 import com.upc.edufinservice.learning.domain.model.queries.GetLessonsByTopicIdQuery;
 import com.upc.edufinservice.learning.domain.model.queries.GetQuizQuestionsBySkillQuery;
-import com.upc.edufinservice.learning.domain.model.queries.GetRandomQuizQuestionsByTopicQuery;
 import com.upc.edufinservice.learning.domain.model.queries.GetTopicByIdQuery;
 import com.upc.edufinservice.learning.domain.services.LearningQueryService;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,13 +23,14 @@ import java.util.UUID;
 @Service
 public class DynamicFinalService {
 
-    private static final int BASE_QUESTIONS = 10;
-    private static final int MIN_EXTRA_QUESTIONS = 3;
-    private static final int MAX_EXTRA_QUESTIONS = 5;
+    /**
+     * Cada LESSON del módulo aporta exactamente 3 preguntas base.
+     */
+    private static final int BASE_QUESTIONS_PER_LESSON = 3;
 
-    /*
-     * Pedimos más candidatas de las que finalmente usaremos porque
-     * alguna podría coincidir con una pregunta ya usada en las 10 base.
+    /**
+     * Pedimos más candidatas LOW_MASTERY de las que finalmente usaremos,
+     * porque alguna puede coincidir con una pregunta ya usada en la base.
      */
     private static final int ADAPTIVE_CANDIDATE_LIMIT = 10;
 
@@ -66,82 +65,71 @@ public class DynamicFinalService {
                 )
         );
 
-        // 2. Obtener las skills QUIZ del módulo
+        // 2. Obtener solamente las LESSON del módulo.
+        // Cada LESSON representa un concepto/skill que debe estar cubierto
+        // uniformemente en el FINAL.
         var topicLessons = learningQueryService.handle(
                 new GetLessonsByTopicIdQuery(topicId)
         );
 
-        Set<Integer> moduleSkillIds = new LinkedHashSet<>();
-
-        topicLessons.stream()
+        var contentLessons = topicLessons.stream()
                 .filter(lesson ->
-                        lesson.getLessonType() == LessonType.QUIZ
+                        lesson.getLessonType() == LessonType.LESSON
                 )
                 .filter(lesson ->
                         lesson.getSkill() != null
                                 && lesson.getSkill().getId() != null
                 )
-                .forEach(lesson ->
-                        moduleSkillIds.add(
-                                lesson.getSkill().getId()
-                        )
-                );
+                .toList();
 
-        if (moduleSkillIds.isEmpty()) {
+        if (contentLessons.isEmpty()) {
             throw new IllegalStateException(
-                    "El módulo no tiene skills QUIZ disponibles para construir el FINAL."
+                    "El módulo no tiene LESSON con skill disponibles para construir el FINAL."
             );
         }
 
-        // 3. Construir las 10 preguntas base equilibradas por skill
+        // 3. Construir la parte base:
+        // exactamente 3 preguntas QUIZ por cada LESSON.
         List<DynamicFinalQuestionSelection> selections =
                 new ArrayList<>();
 
         Set<UUID> selectedQuestionIds =
                 new HashSet<>();
 
-        List<Integer> skills =
-                new ArrayList<>(moduleSkillIds);
+        for (var lesson : contentLessons) {
 
-        int totalSkills = skills.size();
-
-        int basePerSkill =
-                BASE_QUESTIONS / totalSkills;
-
-        int remainder =
-                BASE_QUESTIONS % totalSkills;
-
-        for (int i = 0; i < totalSkills; i++) {
-
-            int skillId = skills.get(i);
-
-            int quota =
-                    basePerSkill
-                            + (i < remainder ? 1 : 0);
-
-            if (quota <= 0) {
-                continue;
-            }
+            int skillId = lesson.getSkill().getId();
 
             List<Question> skillQuestions =
                     learningQueryService.handle(
                             new GetQuizQuestionsBySkillQuery(
                                     skillId,
-                                    quota
+                                    BASE_QUESTIONS_PER_LESSON
                             )
                     );
 
-            if (skillQuestions == null) {
-                continue;
+            if (skillQuestions == null
+                    || skillQuestions.size() < BASE_QUESTIONS_PER_LESSON) {
+
+                throw new IllegalStateException(
+                        "La skill " + skillId
+                                + " no tiene suficientes preguntas QUIZ para aportar "
+                                + BASE_QUESTIONS_PER_LESSON
+                                + " preguntas al FINAL."
+                );
             }
+
+            int addedForLesson = 0;
 
             for (Question question : skillQuestions) {
 
+                if (addedForLesson >= BASE_QUESTIONS_PER_LESSON) {
+                    break;
+                }
+
                 if (question == null
                         || question.getId() == null
-                        || !selectedQuestionIds.add(
-                        question.getId()
-                )) {
+                        || !selectedQuestionIds.add(question.getId())) {
                     continue;
                 }
 
@@ -152,29 +140,40 @@ public class DynamicFinalService {
                                 SelectionReason.STANDARD
                         )
                 );
+
+                addedForLesson++;
+            }
+
+            if (addedForLesson < BASE_QUESTIONS_PER_LESSON) {
+                throw new IllegalStateException(
+                        "No fue posible seleccionar "
+                                + BASE_QUESTIONS_PER_LESSON
+                                + " preguntas distintas para la skill "
+                                + skillId + "."
+                );
             }
         }
 
-        /*
-         * Si alguna skill no tenía suficientes preguntas,
-         * completar las 10 base desde cualquier QUIZ del módulo.
-         */
-        fillWithStandardQuestions(
-                topicId,
-                BASE_QUESTIONS,
-                selections,
-                selectedQuestionIds
-        );
+        int baseQuestionCount =
+                contentLessons.size() * BASE_QUESTIONS_PER_LESSON;
 
-        if (selections.size() < BASE_QUESTIONS) {
+        if (selections.size() != baseQuestionCount) {
             throw new IllegalStateException(
-                    "No existen suficientes preguntas QUIZ para construir "
-                            + "las " + BASE_QUESTIONS
-                            + " preguntas base del FINAL."
+                    "La cantidad de preguntas base del FINAL no coincide con "
+                            + "3 preguntas por cada LESSON."
             );
         }
 
-        // 4. Buscar preguntas extra LOW_MASTERY
+        // 4. Determinar el máximo de preguntas de refuerzo.
+        //
+        // 3 LESSON -> hasta 3
+        // 4 LESSON -> hasta 3
+        // 5 LESSON -> hasta 4
+        // 6 o más -> hasta 5
+        int reinforcementLimit =
+                determineReinforcementLimit(contentLessons.size());
+
+        // 5. Buscar preguntas LOW_MASTERY
         Map<String, Double> mastery =
                 masteryService.getMasterySnapshot(userId);
 
@@ -208,7 +207,7 @@ public class DynamicFinalService {
 
         for (ReinforcementQuestionSelection candidate : adaptiveCandidates) {
 
-            if (adaptiveAdded >= MAX_EXTRA_QUESTIONS) {
+            if (adaptiveAdded >= reinforcementLimit) {
                 break;
             }
 
@@ -216,9 +215,7 @@ public class DynamicFinalService {
 
             if (question == null
                     || question.getId() == null
-                    || !selectedQuestionIds.add(
-                    question.getId()
-            )) {
+                    || !selectedQuestionIds.add(question.getId())) {
                 continue;
             }
 
@@ -233,46 +230,19 @@ public class DynamicFinalService {
             adaptiveAdded++;
         }
 
-        // 5. Determinar tamaño objetivo entre 13 y 15
-        int desiredExtraCount =
-                Math.max(
-                        MIN_EXTRA_QUESTIONS,
-                        Math.min(
-                                adaptiveAdded,
-                                MAX_EXTRA_QUESTIONS
-                        )
-                );
-
-        int targetQuestionCount =
-                BASE_QUESTIONS + desiredExtraCount;
-
-        // 6. Si faltan preguntas, completar con FINAL + STANDARD
-        fillWithStandardQuestions(
-                topicId,
-                targetQuestionCount,
-                selections,
-                selectedQuestionIds
-        );
-
         /*
-         * Seguridad: nunca devolver más de 15.
+         * Ya no se rellena con preguntas STANDARD adicionales.
+         *
+         * El tamaño final queda:
+         *
+         * (3 x cantidad de LESSON)
+         * +
+         * LOW_MASTERY realmente disponibles
          */
-        int maxAllowed =
-                BASE_QUESTIONS + MAX_EXTRA_QUESTIONS;
-
-        if (selections.size() > maxAllowed) {
-            selections =
-                    new ArrayList<>(
-                            selections.subList(
-                                    0,
-                                    maxAllowed
-                            )
-                    );
-        }
 
         Collections.shuffle(selections);
 
-        // 7. Metadata de respuesta
+        // 6. Metadata de respuesta
         int actualAdaptiveCount =
                 (int) selections.stream()
                         .filter(selection ->
@@ -282,8 +252,7 @@ public class DynamicFinalService {
                         .count();
 
         int actualStandardCount =
-                selections.size()
-                        - actualAdaptiveCount;
+                selections.size() - actualAdaptiveCount;
 
         return new DynamicFinalResult(
                 topicId,
@@ -295,63 +264,19 @@ public class DynamicFinalService {
     }
 
     /**
-     * Completa la lista con preguntas FINAL + STANDARD del Topic,
-     * evitando IDs ya seleccionados.
+     * Cantidad máxima de preguntas de refuerzo según
+     * la cantidad de LESSON del módulo.
      */
-    private void fillWithStandardQuestions(
-            UUID topicId,
-            int targetCount,
-            List<DynamicFinalQuestionSelection> selections,
-            Set<UUID> selectedQuestionIds
-    ) {
+    private int determineReinforcementLimit(int lessonCount) {
 
-        if (selections.size() >= targetCount) {
-            return;
+        if (lessonCount <= 4) {
+            return 3;
         }
 
-        int missing =
-                targetCount - selections.size();
-
-        int candidateLimit =
-                Math.min(
-                        30,
-                        missing + 10
-                );
-
-        List<Question> candidates =
-                learningQueryService.handle(
-                        new GetRandomQuizQuestionsByTopicQuery(
-                                topicId,
-                                candidateLimit
-                        )
-                );
-
-        if (candidates == null
-                || candidates.isEmpty()) {
-            return;
+        if (lessonCount == 5) {
+            return 4;
         }
 
-        for (Question question : candidates) {
-
-            if (selections.size() >= targetCount) {
-                break;
-            }
-
-            if (question == null
-                    || question.getId() == null
-                    || !selectedQuestionIds.add(
-                    question.getId()
-            )) {
-                continue;
-            }
-
-            selections.add(
-                    new DynamicFinalQuestionSelection(
-                            question,
-                            InteractionType.FINAL,
-                            SelectionReason.STANDARD
-                    )
-            );
-        }
+        return 5;
     }
 }
