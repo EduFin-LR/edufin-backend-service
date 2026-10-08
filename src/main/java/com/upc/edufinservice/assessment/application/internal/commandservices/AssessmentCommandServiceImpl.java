@@ -1,6 +1,8 @@
 package com.upc.edufinservice.assessment.application.internal.commandservices;
 
 import com.upc.edufinservice.analytics.domain.model.entities.InteractionType;
+import com.upc.edufinservice.analytics.domain.model.entities.MasterySnapshotSource;
+import com.upc.edufinservice.analytics.domain.services.MasteryService;
 import com.upc.edufinservice.assessment.domain.model.aggregates.QuestionAttempt;
 import com.upc.edufinservice.assessment.domain.model.aggregates.UserLessonProgress;
 import com.upc.edufinservice.learning.domain.model.ValueObjetcts.ProgressStatus;
@@ -31,15 +33,18 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
     private final UserLessonProgressRepository _userLessonProgressRepository;
     private final ApplicationEventPublisher _eventPublisher;
     private final LearningQueryService _learningQueryService;
+    private final MasteryService _masteryService;
 
     public AssessmentCommandServiceImpl(QuestionAttemptRepository repository,
                                         UserLessonProgressRepository userLessonProgressRepository,
                                         ApplicationEventPublisher eventPublisher,
-                                        LearningQueryService learningQueryService){
+                                        LearningQueryService learningQueryService,
+                                        MasteryService masteryService){
         _repository = repository;
         _userLessonProgressRepository = userLessonProgressRepository;
         _eventPublisher = eventPublisher;
         _learningQueryService = learningQueryService;
+        _masteryService = masteryService;
     }
 
     @Override
@@ -281,6 +286,17 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
             progress.setAttempts(progress.getAttempts() + 1);
         }
         _userLessonProgressRepository.save(progress);
+
+        // Guardamos un punto histórico al terminar cada QUIZ, aprobado o no.
+        // Las LESSON de contenido no alimentan DKT y por eso no generan un
+        // snapshot histórico adicional.
+        if (isEvaluationQuiz) {
+            _masteryService.recordHistorySnapshot(
+                    command.userId(),
+                    MasterySnapshotSource.QUIZ,
+                    command.lessonId()
+            );
+        }
 
         // Solo una lección aprobada puede desbloquear la siguiente.
         if (passed && currentTopic != null) {
