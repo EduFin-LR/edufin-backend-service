@@ -16,6 +16,8 @@ public interface StudentInteractionRepository extends JpaRepository<StudentInter
 
     List<StudentInteraction> findByUserIdOrderByInteractedAtAsc(UUID userId);
 
+    long countByUserId(UUID userId);
+
     /**
      * Skills realmente trabajadas dentro del recorrido formativo.
      * PRE_TEST puede existir en StudentInteraction para inicializar DKT, pero los

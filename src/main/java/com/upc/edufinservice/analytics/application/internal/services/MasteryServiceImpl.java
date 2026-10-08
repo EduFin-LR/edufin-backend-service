@@ -1,11 +1,18 @@
 package com.upc.edufinservice.analytics.application.internal.services;
 
+import com.upc.edufinservice.analytics.domain.model.entities.MasterySnapshotSource;
+import com.upc.edufinservice.analytics.domain.model.entities.SkillMasteryHistory;
 import com.upc.edufinservice.analytics.domain.model.entities.SkillMasteryPrediction;
 import com.upc.edufinservice.analytics.domain.services.MasteryService;
+import com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositories.SkillMasteryHistoryRepository;
 import com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositories.SkillMasteryPredictionRepository;
+import com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositories.StudentInteractionRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -14,11 +21,20 @@ import java.util.UUID;
 public class MasteryServiceImpl implements MasteryService {
 
     private final SkillMasteryPredictionRepository repository;
+    private final SkillMasteryHistoryRepository historyRepository;
+    private final StudentInteractionRepository interactionRepository;
+
+    @Value("${ml.engine.model-version:dkt_forget_pretrained_v1}")
+    private String modelVersion;
 
     public MasteryServiceImpl(
-            SkillMasteryPredictionRepository repository
+            SkillMasteryPredictionRepository repository,
+            SkillMasteryHistoryRepository historyRepository,
+            StudentInteractionRepository interactionRepository
     ) {
         this.repository = repository;
+        this.historyRepository = historyRepository;
+        this.interactionRepository = interactionRepository;
     }
 
     @Override
@@ -95,5 +111,49 @@ public class MasteryServiceImpl implements MasteryService {
     public boolean hasMasterySnapshot(UUID userId) {
         return userId != null
                 && !repository.findByUserId(userId).isEmpty();
+    }
+
+    @Override
+    @Transactional
+    public void recordHistorySnapshot(
+            UUID userId,
+            MasterySnapshotSource source,
+            UUID contextId
+    ) {
+        if (userId == null || source == null) {
+            return;
+        }
+
+        var currentSnapshot = repository.findByUserId(userId);
+
+        if (currentSnapshot.isEmpty()) {
+            return;
+        }
+
+        Instant recordedAt = Instant.now();
+        long interactionCount = interactionRepository.countByUserId(userId);
+        String effectiveModelVersion =
+                modelVersion == null || modelVersion.isBlank()
+                        ? "unknown"
+                        : modelVersion.trim();
+
+        var historyRows = new ArrayList<SkillMasteryHistory>();
+
+        currentSnapshot.stream()
+                .sorted((a, b) -> Integer.compare(a.getSkillId(), b.getSkillId()))
+                .forEach(prediction -> historyRows.add(
+                        new SkillMasteryHistory(
+                                userId,
+                                prediction.getSkillId(),
+                                prediction.getMastery(),
+                                recordedAt,
+                                interactionCount,
+                                effectiveModelVersion,
+                                source,
+                                contextId
+                        )
+                ));
+
+        historyRepository.saveAll(historyRows);
     }
 }

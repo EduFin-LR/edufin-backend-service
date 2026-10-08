@@ -1,6 +1,7 @@
 package com.upc.edufinservice.assessment.application.internal.services;
 
 import com.upc.edufinservice.analytics.domain.model.entities.InteractionType;
+import com.upc.edufinservice.analytics.domain.model.entities.MasterySnapshotSource;
 import com.upc.edufinservice.analytics.domain.model.entities.SelectionReason;
 import com.upc.edufinservice.analytics.domain.model.entities.StudentInteraction;
 import com.upc.edufinservice.analytics.domain.services.MasteryService;
@@ -234,6 +235,11 @@ public class ExperimentalAssessmentService {
         }
 
         masteryService.updateMasterySnapshot(userId, response.mastery());
+        masteryService.recordHistorySnapshot(
+                userId,
+                MasterySnapshotSource.PRE_TEST,
+                null
+        );
 
         System.out.println(
                 "[DKT-FORGET] Snapshot inicial actualizado desde PRE_TEST para usuario "

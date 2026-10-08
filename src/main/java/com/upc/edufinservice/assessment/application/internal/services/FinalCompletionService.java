@@ -1,6 +1,8 @@
 package com.upc.edufinservice.assessment.application.internal.services;
 
 import com.upc.edufinservice.analytics.domain.model.entities.InteractionType;
+import com.upc.edufinservice.analytics.domain.model.entities.MasterySnapshotSource;
+import com.upc.edufinservice.analytics.domain.services.MasteryService;
 import com.upc.edufinservice.analytics.domain.model.entities.SelectionReason;
 import com.upc.edufinservice.assessment.domain.model.aggregates.QuestionAttempt;
 import com.upc.edufinservice.assessment.domain.model.aggregates.TopicFinalResult;
@@ -43,6 +45,7 @@ public class FinalCompletionService {
     private final UserLessonProgressRepository lessonProgressRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final ExperimentalAssessmentSessionRepository experimentalSessionRepository;
+    private final MasteryService masteryService;
 
     public FinalCompletionService(
             LearningQueryService learningQueryService,
@@ -50,7 +53,8 @@ public class FinalCompletionService {
             TopicFinalResultRepository finalResultRepository,
             UserLessonProgressRepository lessonProgressRepository,
             ApplicationEventPublisher eventPublisher,
-            ExperimentalAssessmentSessionRepository experimentalSessionRepository
+            ExperimentalAssessmentSessionRepository experimentalSessionRepository,
+            MasteryService masteryService
     ) {
         this.learningQueryService = learningQueryService;
         this.questionAttemptRepository = questionAttemptRepository;
@@ -58,6 +62,7 @@ public class FinalCompletionService {
         this.lessonProgressRepository = lessonProgressRepository;
         this.eventPublisher = eventPublisher;
         this.experimentalSessionRepository = experimentalSessionRepository;
+        this.masteryService = masteryService;
     }
 
     @Transactional
@@ -258,6 +263,15 @@ public class FinalCompletionService {
         }
 
         finalResultRepository.save(result);
+
+        // El mastery ya fue recalculado por las interacciones FINAL registradas
+        // durante las respuestas. Aquí persistimos un único punto histórico
+        // representativo del cierre del módulo.
+        masteryService.recordHistorySnapshot(
+                userId,
+                MasterySnapshotSource.FINAL,
+                topicId
+        );
 
         boolean postTestAvailable = hasCompletedAllTopicFinals(userId)
                 && !experimentalSessionRepository.existsByUserIdAndPhase(
