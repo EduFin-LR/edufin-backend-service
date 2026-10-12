@@ -2,9 +2,8 @@ package com.upc.edufinservice.iam.application.internal.commandservices;
 
 import com.upc.edufinservice.iam.domain.model.entities.AccountRecoveryCode;
 import com.upc.edufinservice.iam.infrastructure.persistence.jpa.repositories.AccountRecoveryCodeRepository;
+import com.upc.edufinservice.iam.infrastructure.email.EmailService;
 import com.upc.edufinservice.iam.infrastructure.persistence.jpa.repositories.UserRepository;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,17 +15,17 @@ public class PasswordRecoveryCommandServiceImpl {
 
     private final UserRepository userRepository;
     private final AccountRecoveryCodeRepository recoveryCodeRepository;
-    private final JavaMailSender mailSender;
+    private final EmailService emailService;
 
     private final PasswordEncoder passwordEncoder;
 
     public PasswordRecoveryCommandServiceImpl(UserRepository userRepository,
                                               AccountRecoveryCodeRepository recoveryCodeRepository,
-                                              JavaMailSender mailSender,
+                                              EmailService emailService,
                                               PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.recoveryCodeRepository = recoveryCodeRepository;
-        this.mailSender = mailSender;
+        this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -49,18 +48,9 @@ public class PasswordRecoveryCommandServiceImpl {
         var recoveryCode = new AccountRecoveryCode(user.getId(), code);
         recoveryCodeRepository.save(recoveryCode);
 
-        // 4. Enviar el correo
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(user.getEmail());
-        message.setSubject("Código de Recuperación de Contraseña - EduFin");
-
+        // 4. Enviar el correo mediante Resend (API HTTPS)
         String nombre = user.getFullName() != null ? user.getFullName() : user.getUsername();
-        message.setText("Hola " + nombre + ",\n\n" +
-                "Tu código para restablecer tu contraseña es: " + code + "\n\n" +
-                "Este código expirará en 15 minutos.\n" +
-                "Si no solicitaste este cambio, ignora este correo de forma segura.");
-
-        mailSender.send(message);
+        emailService.sendRecoveryCode(user.getEmail(), nombre, code);
     }
 
     @Transactional
