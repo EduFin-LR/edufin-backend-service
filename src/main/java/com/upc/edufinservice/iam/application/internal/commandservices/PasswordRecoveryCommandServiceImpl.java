@@ -7,6 +7,7 @@ import com.upc.edufinservice.iam.infrastructure.persistence.jpa.repositories.Use
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.upc.edufinservice.iam.domain.model.entities.VerificationCodePurpose;
 
 import java.util.Random;
 
@@ -39,13 +40,20 @@ public class PasswordRecoveryCommandServiceImpl {
         var user = userOpt.get();
 
         // 1. Borrar códigos viejos para este usuario
-        recoveryCodeRepository.deleteByUserId(user.getId());
+        recoveryCodeRepository.deleteByUserIdAndPurpose(
+                user.getId(),
+                VerificationCodePurpose.PASSWORD_RECOVERY
+        );
 
         // 2. Generar código aleatorio de 6 dígitos (ej: 049281)
         String code = String.format("%06d", new Random().nextInt(1000000));
 
         // 3. Guardar en la BD
-        var recoveryCode = new AccountRecoveryCode(user.getId(), code);
+        var recoveryCode = new AccountRecoveryCode(
+                user.getId(),
+                code,
+                VerificationCodePurpose.PASSWORD_RECOVERY
+        );
         recoveryCodeRepository.save(recoveryCode);
 
         // 4. Enviar el correo mediante Resend (API HTTPS)
@@ -60,7 +68,11 @@ public class PasswordRecoveryCommandServiceImpl {
         var user = userOpt.get();
 
         // 1. Buscar el código en la BD
-        var recoveryCodeOpt = recoveryCodeRepository.findByUserIdAndCode(user.getId(), code);
+        var recoveryCodeOpt = recoveryCodeRepository.findByUserIdAndCodeAndPurpose(
+                user.getId(),
+                code,
+                VerificationCodePurpose.PASSWORD_RECOVERY
+        );
 
         // 2. Validar que exista y no esté expirado
         if (recoveryCodeOpt.isEmpty() || recoveryCodeOpt.get().isExpired()) {
@@ -74,7 +86,10 @@ public class PasswordRecoveryCommandServiceImpl {
         userRepository.save(user);
 
         // 4. Borrar el código para que no se vuelva a usar
-        recoveryCodeRepository.deleteByUserId(user.getId());
+        recoveryCodeRepository.deleteByUserIdAndPurpose(
+                user.getId(),
+                VerificationCodePurpose.PASSWORD_RECOVERY
+        );
 
         return true;
     }

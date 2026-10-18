@@ -59,18 +59,41 @@ public class AuthenticationController {
     @PostMapping("/sign-in")
     public ResponseEntity<?> signIn(@RequestBody SignInResource resource){
         // 1. Buscar al usuario
-        var userOpt = _userQueryService.handle(new GetUserByUsernameQuery(resource.username()));
+        var userOpt = _userQueryService.handle(
+                new GetUserByUsernameQuery(resource.username())
+        );
 
-        // 2. Validar credenciales y lanzar excepción si fallan
-        if(userOpt.isEmpty() || !_passwordEncoder.matches(resource.password(), userOpt.get().getPasswordHash())){
-            // Aquí está la magia: ¡Lanzamos la excepción!
+        // 2. Validar credenciales
+        if (
+                userOpt.isEmpty() ||
+                        !_passwordEncoder.matches(
+                                resource.password(),
+                                userOpt.get().getPasswordHash()
+                        )
+        ) {
             throw new BadCredentialsException("Credenciales inválidas");
         }
 
-        // 3. Generar token
-        var token = _tokenProvider.generateToken(userOpt.get().getUsername());
+        // 3. Validar que el correo esté verificado
+        if (!userOpt.get().isEmailVerified()) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Debes verificar tu correo electrónico antes de iniciar sesión."
+            );
+        }
 
-        // 4. Retornar el recurso autenticado
-        return ResponseEntity.ok(new AuthenticatedUserResource(userOpt.get().getId(), userOpt.get().getUsername(), token));
+        // 4. Generar token
+        var token = _tokenProvider.generateToken(
+                userOpt.get().getUsername()
+        );
+
+        // 5. Retornar usuario autenticado
+        return ResponseEntity.ok(
+                new AuthenticatedUserResource(
+                        userOpt.get().getId(),
+                        userOpt.get().getUsername(),
+                        token
+                )
+        );
     }
 }
