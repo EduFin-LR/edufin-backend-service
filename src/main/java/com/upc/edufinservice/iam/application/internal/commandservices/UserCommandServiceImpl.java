@@ -13,9 +13,16 @@ import java.util.Optional;
 public class UserCommandServiceImpl implements UserCommandService {
     private final UserRepository _userRepository;
     private final PasswordEncoder _passwordEncoder;
-    public UserCommandServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder){
+    private final EmailVerificationCommandServiceImpl _emailVerificationService;
+
+    public UserCommandServiceImpl(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            EmailVerificationCommandServiceImpl emailVerificationService
+    ) {
         _userRepository = userRepository;
         _passwordEncoder = passwordEncoder;
+        _emailVerificationService = emailVerificationService;
     }
 
     @Override
@@ -28,9 +35,16 @@ public class UserCommandServiceImpl implements UserCommandService {
         }
 
         String hashedPassword = _passwordEncoder.encode(command.password());
+
         //Mapeo del comando al agregado de dominio.
         User user = new User(command.username(), command.email(), hashedPassword, command.gender());
 
-        return Optional.of(_userRepository.save(user));
+        User savedUser = _userRepository.save(user);
+
+        _emailVerificationService.sendVerificationCode(
+                savedUser.getEmail()
+        );
+
+        return Optional.of(savedUser);
     }
 }

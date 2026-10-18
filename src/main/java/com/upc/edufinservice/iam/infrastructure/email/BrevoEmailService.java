@@ -89,4 +89,72 @@ public class BrevoEmailService implements EmailService {
             );
         }
     }
+
+    @Override
+    public void sendVerificationCode(
+            String toEmail,
+            String username,
+            String code
+    ) {
+
+        Map<String, Object> sender = Map.of(
+                "name", fromName,
+                "email", fromEmail
+        );
+
+        Map<String, Object> recipient = Map.of(
+                "email", toEmail
+        );
+
+        Map<String, Object> body = Map.of(
+                "sender", sender,
+                "to", List.of(recipient),
+                "subject", "Verifica tu correo - EduFin",
+                "htmlContent", """
+                    <div style="font-family: Arial, sans-serif;">
+                        <h2>Verificación de correo</h2>
+
+                        <p>Hola %s,</p>
+
+                        <p>Gracias por registrarte en EduFin.</p>
+
+                        <p>Tu código de verificación es:</p>
+
+                        <h1 style="letter-spacing: 6px;">
+                            %s
+                        </h1>
+
+                        <p>Este código expirará en 15 minutos.</p>
+
+                        <p>Si no creaste esta cuenta, puedes ignorar este correo.</p>
+
+                        <br>
+
+                        <p>EduFin</p>
+                    </div>
+                    """.formatted(username, code)
+        );
+
+        try {
+
+            webClient.post()
+                    .uri("/smtp/email")
+                    .header("api-key", apiKey)
+                    .header("Content-Type", "application/json")
+                    .bodyValue(body)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+
+        } catch (WebClientResponseException e) {
+
+            throw new IllegalStateException(
+                    "Brevo rechazó el envío del correo de verificación (HTTP "
+                            + e.getStatusCode().value()
+                            + "): "
+                            + e.getResponseBodyAsString(),
+                    e
+            );
+        }
+    }
 }

@@ -33,11 +33,19 @@ public class AccountRecoveryCode {
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
-    public AccountRecoveryCode(UUID userId, String code) {
+    @Enumerated(EnumType.STRING)
+    @Column(name = "purpose", nullable = false, length = 30)
+    private VerificationCodePurpose purpose;
+
+    public AccountRecoveryCode(
+            UUID userId,
+            String code,
+            VerificationCodePurpose purpose
+    ) {
         this.userId = userId;
         this.code = code;
+        this.purpose = purpose;
         this.createdAt = LocalDateTime.now();
-        // El código expira automáticamente en 15 minutos
         this.expiresAt = LocalDateTime.now().plusMinutes(15);
     }
 

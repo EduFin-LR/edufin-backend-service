@@ -39,11 +39,15 @@ public class User {
     @Column(name = "full_name", length = 100)
     private String fullName;
 
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
+
     //constructor personalizado para cuando se registre
     public User(String username, String email, String passwordHash, String gender){
         this.username = username;
         this.email = email;
         this.passwordHash = passwordHash;
         this.gender = gender;
+        this.emailVerified = false;
     }
 }
