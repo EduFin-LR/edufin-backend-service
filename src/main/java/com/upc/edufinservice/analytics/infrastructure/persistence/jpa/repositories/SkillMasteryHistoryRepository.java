@@ -3,6 +3,7 @@ package com.upc.edufinservice.analytics.infrastructure.persistence.jpa.repositor
 import com.upc.edufinservice.analytics.domain.model.entities.SkillMasteryHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,4 +18,14 @@ public interface SkillMasteryHistoryRepository
             UUID userId,
             Integer skillId
     );
+
+    @Query(
+            value = """
+                SELECT DISTINCT ON (user_id, skill_id) *
+                FROM skill_mastery_history
+                ORDER BY user_id, skill_id, recorded_at DESC
+                """,
+            nativeQuery = true
+    )
+    List<SkillMasteryHistory> findLatestMasteryByUserAndSkill();
 }
