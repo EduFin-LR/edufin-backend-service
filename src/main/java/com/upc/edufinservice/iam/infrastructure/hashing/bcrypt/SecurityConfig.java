@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -95,6 +96,12 @@ public class SecurityConfig {
                         // Permitimos libre acceso a Swagger para poder probar
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // TODO: Aquí pondremos las rutas protegidas en el futuro
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/analytics/low-mastery-students"
+                        ).permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(_tokenProvider), UsernamePasswordAuthenticationFilter.class);
