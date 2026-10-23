@@ -21,7 +21,13 @@ public class ExperimentalAssessmentSeeder implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
         seed("PRE_Q01", 1, 1, "Ingresos y presupuesto", "Sueldo bruto vs. neto",
-                "Una empresa emite la boleta de pago mensual de Juana correspondiente al mes de julio. El documento detalla: Salario bruto: S/ 2,800; Deducciones de ley (aportes previsionales e impuestos): S/ 300; Salario neto: S/ 2,500; Salario bruto acumulado del año: S/ 19,600. ¿Cuánto dinero deposita efectivamente la empresa en la cuenta bancaria de Juana a fin de mes?",
+                "Una empresa emite la boleta de pago mensual de Juana correspondiente al mes de julio.\n\n" +
+                        "El documento detalla:\n" +
+                        "Salario bruto: S/ 2,800\n" +
+                        "Deducciones de ley (aportes previsionales e impuestos): S/ 300\n" +
+                        "Salario neto: S/ 2,500\n" +
+                        "Salario bruto acumulado del año: S/ 19,600\n\n" +
+                        "¿Cuánto dinero deposita efectivamente la empresa en la cuenta bancaria de Juana a fin de mes?",
                 "PISA 2012 - PF067Q01 (Nómina)", 1,
                 new Opt("A", "S/ 300", false), new Opt("B", "S/ 2,500", true), new Opt("C", "S/ 2,800", false), new Opt("D", "S/ 19,600", false), new Opt("E", "No lo sé", false));
 
@@ -34,7 +40,9 @@ public class ExperimentalAssessmentSeeder implements CommandLineRunner {
                 new Opt("D", "No lo sé", false));
 
         seed("PRE_Q03", 3, 2, "Ahorro", "Inflación y poder adquisitivo",
-                "Alicia mantiene S/ 1,000 en una cuenta de ahorros que genera una tasa de rentabilidad del 2% al año. Durante ese mismo año, la tasa de inflación en el país fue del 3%. ¿Cuál de las siguientes afirmaciones es correcta respecto a su dinero al cabo de ese año?",
+                "Alicia mantiene S/ 1,000 en una cuenta de ahorros que genera una tasa de rentabilidad del 2% al año.\n" +
+                        "Durante ese mismo año, la tasa de inflación en el país fue del 3%.\n\n" +
+                        "¿Cuál de las siguientes afirmaciones es correcta respecto a su dinero al cabo de ese año?",
                 "P-Fin 8 - Q3 / OCDE-INFE - QK3", 10,
                 new Opt("A", "Alicia podrá comprar menos cosas con su dinero que al inicio del año", true), new Opt("B", "Alicia podrá comprar más cosas con su dinero que al inicio del año", false), new Opt("C", "Su poder adquisitivo se mantendrá exactamente igual", false), new Opt("D", "No lo sé", false));
 
@@ -49,7 +57,9 @@ public class ExperimentalAssessmentSeeder implements CommandLineRunner {
                 new Opt("A", "En menos de 5 años", true), new Opt("B", "Entre 5 y 10 años", false), new Opt("C", "En más de 10 años", false), new Opt("D", "No lo sé", false));
 
         seed("PRE_Q06", 6, 3, "Crédito y deuda", "Compra de deuda y costo total",
-                "Una persona mantiene una deuda pendiente de S/ 7,400 al 15% anual y paga una cuota mensual de S/ 150. Otra entidad financiera le ofrece comprar su deuda y otorgarle un nuevo crédito por S/ 10,000 al 13% anual manteniendo la misma cuota de S/ 150 al mes. ¿Cuál es la principal desventaja financiera de aceptar esta nueva oferta?",
+                "Una persona mantiene una deuda pendiente de S/ 7,400 al 15% anual y paga una cuota mensual de S/ 150.\n\n" +
+                        "Otra entidad financiera le ofrece comprar su deuda y otorgarle un nuevo crédito por S/ 10,000 al 13% anual, manteniendo la misma cuota de S/ 150 al mes.\n\n" +
+                        "¿Cuál es la principal desventaja financiera de aceptar esta nueva oferta?",
                 "PISA 2012 - PF025Q02 (Nueva oferta)", 12,
                 new Opt("A", "La tasa de interés del 13% es más elevada que la tasa original del 15%", false),
                 new Opt("B", "Aumentará el capital total adeudado y terminará pagando más intereses totales a lo largo del tiempo", true),
@@ -76,7 +86,8 @@ public class ExperimentalAssessmentSeeder implements CommandLineRunner {
                 new Opt("A", "Verdadero", true), new Opt("B", "Falso", false), new Opt("C", "No lo sé", false));
 
         seed("PRE_Q10", 10, 6, "Seguros", "Prioridad actuarial en jóvenes",
-                "Camila es una joven trabajadora soltera de 24 años, con buena salud y sin personas a su cargo (sin dependientes). ¿Qué tipo de cobertura de seguro es más prioritaria para ella a corto plazo para proteger su estabilidad financiera?",
+                "Camila es una joven trabajadora soltera de 24 años, con buena salud y sin personas a su cargo.\n\n" +
+                        "¿Qué tipo de cobertura de seguro es más prioritaria para ella a corto plazo para proteger su estabilidad financiera?",
                 "P-Fin 8 - Q6 (Insuring / GFLEC)", 24,
                 new Opt("A", "Un seguro de vida tradicional", false), new Opt("B", "Un seguro de incapacidad laboral o invalidez temporal que proteja la continuidad de sus ingresos ante un accidente o enfermedad", true), new Opt("C", "Un seguro de cuidados de dependencia para la tercera edad", false), new Opt("D", "No lo sé", false));
 
