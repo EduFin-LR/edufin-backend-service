@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class GamificationCommandServiceImpl implements GamificationCommandService {
@@ -77,4 +78,37 @@ public class GamificationCommandServiceImpl implements GamificationCommandServic
             }
         }
     }
+
+    @Transactional
+    @Override
+    public void evaluateModuleCompleted(UUID userId, int moduleNumber) {
+
+        var allBadges = badgeRepository.findAll();
+
+        for (var badge : allBadges) {
+
+            if (!"MODULE_COMPLETED".equalsIgnoreCase(badge.getConditionType())) {
+                continue;
+            }
+
+            if (badge.getConditionValue() != moduleNumber) {
+                continue;
+            }
+
+            if (achievementRepository.existsByUserIdAndBadgeId(userId, badge.getId())) {
+                continue;
+            }
+
+            var achievement = new UserAchievement(userId, badge);
+            achievementRepository.save(achievement);
+
+            System.out.println(
+                    "🎉 Logro de módulo desbloqueado para usuario "
+                            + userId
+                            + ": "
+                            + badge.getName()
+            );
+        }
+    }
+
 }
