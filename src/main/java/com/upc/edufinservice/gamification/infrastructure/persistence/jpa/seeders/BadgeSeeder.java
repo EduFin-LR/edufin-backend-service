@@ -44,6 +44,62 @@ public class BadgeSeeder implements CommandLineRunner {
                 3
         );
 
+        createBadgeIfNotExists(
+                "Presupuesto bajo control",
+                "Completaste el módulo 1 de ingresos y presupuesto.",
+                "https://img.icons8.com/color/96/wallet.png",
+                "MODULE_COMPLETED",
+                1
+        );
+
+        createBadgeIfNotExists(
+                "Ahorrador inteligente",
+                "Completaste el módulo 2 de ahorro.",
+                "https://img.icons8.com/color/96/money-box.png",
+                "MODULE_COMPLETED",
+                2
+        );
+
+        createBadgeIfNotExists(
+                "Crédito responsable",
+                "Completaste el módulo 3 de crédito y deuda.",
+                "https://img.icons8.com/color/96/bank-card-back-side.png",
+                "MODULE_COMPLETED",
+                3
+        );
+
+        createBadgeIfNotExists(
+                "Futuro asegurado",
+                "Completaste el módulo 4 de pensiones.",
+                "https://img.icons8.com/color/96/retirement.png",
+                "MODULE_COMPLETED",
+                4
+        );
+
+        createBadgeIfNotExists(
+                "Inversionista en formación",
+                "Completaste el módulo 5 de inversión.",
+                "https://img.icons8.com/color/96/combo-chart.png",
+                "MODULE_COMPLETED",
+                5
+        );
+
+        createBadgeIfNotExists(
+                "Protección financiera",
+                "Completaste el módulo 6 de seguros.",
+                "https://img.icons8.com/color/96/security-checked.png",
+                "MODULE_COMPLETED",
+                6
+        );
+
+        createBadgeIfNotExists(
+                "Finanzas seguras",
+                "Completaste el módulo 7 de sistema financiero y seguridad.",
+                "https://img.icons8.com/color/96/verified-account.png",
+                "MODULE_COMPLETED",
+                7
+        );
+
         System.out.println("✅ [SEEDER] Badges verificados correctamente.");
     }
 
