@@ -45,6 +45,14 @@ public class BadgeSeeder implements CommandLineRunner {
         );
 
         createBadgeIfNotExists(
+                "Constancia Financiera",
+                "Has estudiado 5 días seguidos. La constancia fortalece tus hábitos financieros.",
+                "https://img.icons8.com/color/96/calendar.png",
+                "STREAK",
+                5
+        );
+
+        createBadgeIfNotExists(
                 "Presupuesto bajo control",
                 "Completaste el módulo 1 de ingresos y presupuesto.",
                 "https://img.icons8.com/color/96/wallet.png",
@@ -98,6 +106,30 @@ public class BadgeSeeder implements CommandLineRunner {
                 "https://img.icons8.com/color/96/verified-account.png",
                 "MODULE_COMPLETED",
                 7
+        );
+
+        createBadgeIfNotExists(
+                "Experto en progreso",
+                "Alcanzaste el nivel 30. Tu conocimiento financiero sigue creciendo.",
+                "https://img.icons8.com/color/96/learning.png",
+                "LEVEL",
+                30
+        );
+
+        createBadgeIfNotExists(
+                "Especialista financiero",
+                "Alcanzaste el nivel 50. Ya dominas gran parte del recorrido financiero.",
+                "https://img.icons8.com/color/96/prize.png",
+                "LEVEL",
+                50
+        );
+
+        createBadgeIfNotExists(
+                "Maestro de las finanzas",
+                "Alcanzaste el nivel 75. Estás muy cerca de dominar por completo el programa.",
+                "https://img.icons8.com/color/96/trophy.png",
+                "LEVEL",
+                75
         );
 
         System.out.println("✅ [SEEDER] Badges verificados correctamente.");
