@@ -8,6 +8,7 @@ import java.util.UUID;
 public record QuestionAnsweredCorrectlyEvent(
         UUID userId,
         UUID questionId,
+        UUID selectedOptionId,
         InteractionType interactionType,
         SelectionReason selectionReason
 ) {}

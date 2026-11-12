@@ -88,6 +88,7 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
                     new QuestionAnsweredCorrectlyEvent(
                             attempt.getUserId(),
                             attempt.getQuestionId(),
+                            attempt.getSelectedOptionId(),
                             attempt.getInteractionType(),
                             attempt.getSelectionReason()
                     )
@@ -164,9 +165,12 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
     @Override
     @Transactional
     public LessonCompletionResponse handle(CompleteLessonCommand command) {
+        // Bloqueamos el progreso durante el completado para que dos solicitudes
+        // concurrentes no otorguen la primera recompensa dos veces.
         var progress = _userLessonProgressRepository
-                .findByUserIdAndLessonId(command.userId(), command.lessonId())
+                .findByUserIdAndLessonIdForUpdate(command.userId(), command.lessonId())
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró un progreso activo para esta lección."));
+        boolean alreadyCompleted = progress.getStatus() == ProgressStatus.COMPLETED;
 
         // El frontend envía exactamente las preguntas que fueron presentadas
         // en esta ejecución (8+2 en quiz adaptativo, por ejemplo). Así evitamos
@@ -272,9 +276,17 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
                 && currentLesson.getLessonType() == LessonType.QUIZ;
         boolean passed = !isEvaluationQuiz || calculatedScore >= QUIZ_PASSING_SCORE;
 
-        if (passed) {
+        if (passed && !alreadyCompleted) {
             progress.markAsCompleted(calculatedScore, command.timeSpentSec());
-        } else {
+        } else if (passed) {
+            // Un repaso puede actualizar el mejor puntaje, pero no reinicia
+            // completedAt ni genera otra primera finalización.
+            if (calculatedScore > progress.getScore()) {
+                progress.setScore(calculatedScore);
+            }
+            progress.setTimeSpentSec(progress.getTimeSpentSec() + command.timeSpentSec());
+            progress.setAttempts(progress.getAttempts() + 1);
+        } else if (!alreadyCompleted) {
             // El QUIZ fue respondido, pero no aprobado. Se conserva el mejor
             // puntaje y el tiempo/intento, pero la lección sigue IN_PROGRESS.
             progress.setStatus(ProgressStatus.IN_PROGRESS);
@@ -329,14 +341,15 @@ public class AssessmentCommandServiceImpl implements AssessmentCommandService {
 
         // Un QUIZ reprobado no entrega XP de completado. Los aciertos de sus
         // preguntas mantienen su XP individual, igual que antes.
-        int experienceGainedForCompletion = passed ? Math.round(calculatedScore) : 0;
-        // Los eventos de respuesta correcta otorgan 10 XP por interacción atómica.
-        // En drag & drop cada tarjeta es una interacción, por eso este valor se
-        // calcula a nivel de opción, mientras que la nota sigue siendo por pregunta.
-        int experienceFromQuestions = correctAtomicAttempts * 10;
+        boolean firstCompletion = passed && !alreadyCompleted;
+        int experienceGainedForCompletion = firstCompletion ? Math.round(calculatedScore) : 0;
+        // Un repaso completado no concede XP por preguntas, aunque se registren
+        // los intentos para analítica y DKT. Para actividades aún no completadas,
+        // el valor se mantiene estimativo, como en el contrato anterior.
+        int experienceFromQuestions = alreadyCompleted ? 0 : correctAtomicAttempts * 10;
         int totalExperience = experienceGainedForCompletion + experienceFromQuestions;
 
-        if (passed) {
+        if (firstCompletion) {
             _eventPublisher.publishEvent(new com.upc.edufinservice.assessment.domain.model.events.LessonCompletedEvent(
                     command.userId(),
                     command.lessonId(),
