@@ -5,8 +5,10 @@ import com.upc.edufinservice.iam.domain.model.entities.VerificationCodePurpose;
 import com.upc.edufinservice.iam.infrastructure.email.EmailService;
 import com.upc.edufinservice.iam.infrastructure.persistence.jpa.repositories.AccountRecoveryCodeRepository;
 import com.upc.edufinservice.iam.infrastructure.persistence.jpa.repositories.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -39,7 +41,7 @@ public class EmailVerificationCommandServiceImpl {
                 );
 
         if (user.isEmailVerified()) {
-            throw new IllegalStateException("El correo ya fue verificado");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo ya fue verificado. Inicia sesión.");
         }
 
         recoveryCodeRepository.deleteByUserIdAndPurpose(
@@ -75,8 +77,13 @@ public class EmailVerificationCommandServiceImpl {
                         new IllegalArgumentException("Usuario no encontrado")
                 );
 
+        // Una cuenta ya verificada no debe aceptar códigos arbitrarios con HTTP 200.
         if (user.isEmailVerified()) {
-            return;
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo ya fue verificado. Inicia sesión.");
+        }
+
+        if (code == null || !code.matches("\\d{6}")) {
+            throw new IllegalArgumentException("El código de verificación debe tener 6 dígitos");
         }
 
         var verificationCode =
